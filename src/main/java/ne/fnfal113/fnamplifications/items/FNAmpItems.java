@@ -1,5 +1,7 @@
 package ne.fnfal113.fnamplifications.items;
 
+import ne.fnfal113.fnamplifications.utils.HeadUtils;
+
 import io.github.thebusybiscuit.slimefun4.api.MinecraftVersion;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 
@@ -14,8 +16,6 @@ import io.github.thebusybiscuit.slimefun4.api.items.groups.SubItemGroup;
 import io.github.thebusybiscuit.slimefun4.core.attributes.MachineTier;
 import io.github.thebusybiscuit.slimefun4.core.attributes.MachineType;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack;
-import io.github.thebusybiscuit.slimefun4.libraries.dough.skins.PlayerHead;
-import io.github.thebusybiscuit.slimefun4.libraries.dough.skins.PlayerSkin;
 import io.github.thebusybiscuit.slimefun4.utils.LoreBuilder;
 
 import ne.fnfal113.fnamplifications.FNAmplifications;
@@ -53,118 +53,108 @@ public class FNAmpItems {
     // start of Item Groups
     public static final NestedItemGroup FN_MAIN_GROUP = new NestedItemGroup(
             new NamespacedKey(FNAmplifications.getInstance(), "FN_ITEMS"),
-            new CustomItemStack(PlayerHead.getItemStack(PlayerSkin.fromHashCode(
-                    "115b670a704ba080a730acf246da64c413901644847edd671c3da9a97441ddc5")),
+            CustomItemStack.create(HeadUtils.headFromHash("115b670a704ba080a730acf246da64c413901644847edd671c3da9a97441ddc5"),
             "&e&lFN &b&lAmpli&c&lfications"));
 
     public static final SubItemGroup POWER_GENERATORS = new SubItemGroup(
             new NamespacedKey(FNAmplifications.getInstance(), "POWER_GENERATORS"),
             FN_MAIN_GROUP,
-            new CustomItemStack(PlayerHead.getItemStack(PlayerSkin.fromHashCode(
-                    "ecb316f7a227a8c59d58ae0dd6768fe4fa546d55b9cfdd56cfe40b6586d81c24")),
+            CustomItemStack.create(HeadUtils.headFromHash("ecb316f7a227a8c59d58ae0dd6768fe4fa546d55b9cfdd56cfe40b6586d81c24"),
             "&eFN Power Xpansion"));
 
     public static final SubItemGroup MATERIAL_GENERATORS = new SubItemGroup(
             new NamespacedKey(FNAmplifications.getInstance(), "MATERIAL_GENERATORS"),
             FN_MAIN_GROUP,
-            new CustomItemStack(Material.EMERALD_BLOCK,
+            CustomItemStack.create(Material.EMERALD_BLOCK,
             "&eFN Material Generators"));
 
     public static final SubItemGroup MATERIAL_GENERATORS_UPGRADES = new SubItemGroup(
             new NamespacedKey(FNAmplifications.getInstance(), "MATERIAL_GENERATORS_UPGRADES"),
             FN_MAIN_GROUP,
-            new CustomItemStack(Material.GOLD_BLOCK,
+            CustomItemStack.create(Material.GOLD_BLOCK,
                     "&eFN Material Generators Upgrades"));
 
     public static final SubItemGroup SOLAR_GENERATORS = new SubItemGroup(
             new NamespacedKey(FNAmplifications.getInstance(), "SOLAR_GENERATORS"),
             FN_MAIN_GROUP,
-            new CustomItemStack(PlayerHead.getItemStack(PlayerSkin.fromHashCode(
-                    "e7f4c00356d1addb85b45ba5352992d3ecc0c9d11feb9041482f8531fd27d014")),
+            CustomItemStack.create(HeadUtils.headFromHash("e7f4c00356d1addb85b45ba5352992d3ecc0c9d11feb9041482f8531fd27d014"),
             "&eFN Solar Generators"));
 
     public static final SubItemGroup MACHINES = new SubItemGroup(
             new NamespacedKey(FNAmplifications.getInstance(), "MACHINERY"),
             FN_MAIN_GROUP,
-            new CustomItemStack(PlayerHead.getItemStack(PlayerSkin.fromHashCode(
-                    "4a7d54ca45a398c364cebbffb5390ce5e0345e0c7bc5e863acabf57d1342c4bd")),
+            CustomItemStack.create(HeadUtils.headFromHash("4a7d54ca45a398c364cebbffb5390ce5e0345e0c7bc5e863acabf57d1342c4bd"),
             "&eFN Machinery"));
 
     public static final SubItemGroup ITEMS = new SubItemGroup(
             new NamespacedKey(FNAmplifications.getInstance(), "MACHINERY_ITEMS"),
             FN_MAIN_GROUP,
-            new CustomItemStack(PlayerHead.getItemStack(PlayerSkin.fromHashCode(
-                    "8245a1c3e8d7c3d59d05e3634b04af4cbf8d11b70e2a40e2e6364386db49e737")),
+            CustomItemStack.create(HeadUtils.headFromHash("8245a1c3e8d7c3d59d05e3634b04af4cbf8d11b70e2a40e2e6364386db49e737"),
             "&eFN Machinery Items"));
 
     public static final SubItemGroup MAGICAL_ITEMS = new SubItemGroup(
             new NamespacedKey(FNAmplifications.getInstance(), "MAGICAL_ITEMS"),
             FN_MAIN_GROUP,
-            new CustomItemStack(PlayerHead.getItemStack(PlayerSkin.fromHashCode(
-                    "72114a80357463fe2f59e397aab9fc66d482a65d524f8870d21c724c18ecf757")),
+            CustomItemStack.create(HeadUtils.headFromHash("72114a80357463fe2f59e397aab9fc66d482a65d524f8870d21c724c18ecf757"),
                     "&eFN Magical Items"));
 
     public static final SubItemGroup MULTIBLOCK = new SubItemGroup(
             new NamespacedKey(FNAmplifications.getInstance(), "MULTIBLOCK"),
             FN_MAIN_GROUP,
-            new CustomItemStack(PlayerHead.getItemStack(PlayerSkin.fromHashCode(
-                    "550c3306bb11522fec380ea248eb6a5b180f4a7ab8843d635d14d4a778d6351")),
+            CustomItemStack.create(HeadUtils.headFromHash("550c3306bb11522fec380ea248eb6a5b180f4a7ab8843d635d14d4a778d6351"),
             "&eFN Multiblocks"));
 
     public static final SubItemGroup METAL_SCRAP_RECIPES = new SubItemGroup(
             new NamespacedKey(FNAmplifications.getInstance(), "METAL_SCRAP_RECIPES"),
             FN_MAIN_GROUP,
-            new CustomItemStack(PlayerHead.getItemStack(PlayerSkin.fromHashCode(
-                    "3ff0bee591e5f0000ef16f966b949adcb5c2f409a14ccfc5b91222fd925045db")),
+            CustomItemStack.create(HeadUtils.headFromHash("3ff0bee591e5f0000ef16f966b949adcb5c2f409a14ccfc5b91222fd925045db"),
             "&eMetal Scrap Recipes"));
 
     public static final SubItemGroup MYSTERY_STICKS = new SubItemGroup(
             new NamespacedKey(FNAmplifications.getInstance(), "MYSTERY_STICKS"),
             FN_MAIN_GROUP,
-            new CustomItemStack(STICK,
+            CustomItemStack.create(STICK,
                     "&eFN Mystery PVP/PVE Sticks"));
 
     public static final SubItemGroup FN_GEARS = new SubItemGroup(
             new NamespacedKey(FNAmplifications.getInstance(), "FN_GEARS"),
             FN_MAIN_GROUP,
-            new CustomItemStack(ARMOR,
+            CustomItemStack.create(ARMOR,
                     "&eFN Gears of Friction"));
 
     public static final SubItemGroup FN_STAFFS = new SubItemGroup(
             new NamespacedKey(FNAmplifications.getInstance(), "FN_STAFFS"),
             FN_MAIN_GROUP,
-            new CustomItemStack(Material.BLAZE_ROD,
+            CustomItemStack.create(Material.BLAZE_ROD,
                     "&eFN Staffs"));
 
     public static final SubItemGroup FN_MISC = new SubItemGroup(
             new NamespacedKey(FNAmplifications.getInstance(), "FN_MISC"),
             FN_MAIN_GROUP,
-            new CustomItemStack(Material.CHEST,
+            CustomItemStack.create(Material.CHEST,
                     "&eFN Miscellaneous"));
 
     public static final SubItemGroup FN_QUIVERS = new SubItemGroup(
             new NamespacedKey(FNAmplifications.getInstance(), "FN_QUIVERS"),
             FN_MAIN_GROUP,
-            new CustomItemStack(Material.LEATHER,
+            CustomItemStack.create(Material.LEATHER,
                     "&eFN Quivers"));
 
     public static final SubItemGroup FN_GEMS = new SubItemGroup(
             new NamespacedKey(FNAmplifications.getInstance(), "FN_GEMS"),
             FN_MAIN_GROUP,
-            new CustomItemStack(Material.EMERALD,
+            CustomItemStack.create(Material.EMERALD,
                     "&eFN Gems"));
 
     public static final ItemGroup FN_AMPLIFICATIONS = new ItemGroup(
             new NamespacedKey(FNAmplifications.getInstance(), "FN_AMPLIFICATIONS"),
-            new CustomItemStack(PlayerHead.getItemStack(PlayerSkin.fromHashCode(
-                    "115b670a704ba080a730acf246da64c413901644847edd671c3da9a97441ddc5")),
+            CustomItemStack.create(HeadUtils.headFromHash("115b670a704ba080a730acf246da64c413901644847edd671c3da9a97441ddc5"),
             "&e&lFN &b&lAmpli&c&lfications"));
 
     // start of FN itemstacks
     public static final SlimefunItemStack FN_XPANSION_POWER_R1 = new SlimefunItemStack(
             "FN_POWER_XPANSION_POWER_R1",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode(
-                    "33165e254de7863459343543f933481f0dcf8d4730a23433b9a7ff0d3ff79c5a")),
+            HeadUtils.headFromHash("33165e254de7863459343543f933481f0dcf8d4730a23433b9a7ff0d3ff79c5a"),
             "&d&lFN Power Xpansion R1",
             "&9This works at Night!",
             "&9Place and right click",
@@ -174,8 +164,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack FN_XPANSION_POWER_R2 = new SlimefunItemStack(
             "FN_POWER_XPANSION_POWER_R2",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode(
-                    "5b78e55e3ea6b3682bd7cead43eb1c91b2527a81aa2894f095801f6ee47a3")),
+            HeadUtils.headFromHash("5b78e55e3ea6b3682bd7cead43eb1c91b2527a81aa2894f095801f6ee47a3"),
             "&d&lFN Power Xpansion R2",
             "&9This works at Night!",
             "&9Place and right click",
@@ -185,8 +174,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack FN_XPANSION_POWER_R3 = new SlimefunItemStack(
             "FN_POWER_XPANSION_POWER_R3",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode(
-                    "45ff60d863d1cf76742f275e2ac5749dd0a978a231d3c51e816132c75aef608a")),
+            HeadUtils.headFromHash("45ff60d863d1cf76742f275e2ac5749dd0a978a231d3c51e816132c75aef608a"),
             "&d&lFN Power Xpansion R3",
             "&9This works at Night!",
             "&9Place and right click",
@@ -196,8 +184,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack FN_XPANSION_POWER_R4 = new SlimefunItemStack(
             "FN_POWER_XPANSION_POWER_R4",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode(
-                    "efc05af0e88c6fb10b4c8c8b81b7aa658e64649724cb73bb9bb0f25f28bd")),
+            HeadUtils.headFromHash("efc05af0e88c6fb10b4c8c8b81b7aa658e64649724cb73bb9bb0f25f28bd"),
             "&d&lFN Power Xpansion R4",
             "&9This works at Night!",
             "&9Place and right click",
@@ -207,8 +194,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack FN_XPANSION_POWER_R5 = new SlimefunItemStack(
             "FN_POWER_XPANSION_POWER_R5",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode(
-                    "8f14f3179b86f69b3efa7472dacaeb2339f6290d2d817362793348abd98e021")),
+            HeadUtils.headFromHash("8f14f3179b86f69b3efa7472dacaeb2339f6290d2d817362793348abd98e021"),
             "&d&lFN Power Xpansion R5",
             "&9This works at Night!",
             "&9Place and right click",
@@ -218,8 +204,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack FN_XPANSION_POWER_R6 = new SlimefunItemStack(
             "FN_POWER_XPANSION_POWER_R6",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode(
-                    "1d5a09884cb83ef5c908dddd385f246fefdee221712c010177f54376da238fdd")),
+            HeadUtils.headFromHash("1d5a09884cb83ef5c908dddd385f246fefdee221712c010177f54376da238fdd"),
             "&d&lFN Power Xpansion R6",
             "&9This works at Night!",
             "&9Place and right click",
@@ -229,8 +214,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack FN_XPANSION_POWER_R7 = new SlimefunItemStack(
             "FN_POWER_XPANSION_POWER_R7",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode(
-                    "f7e541dfb4ba1f7dc28b548e347abbdc987ebe0e61c49fa87111ef1b2dcb2218")),
+            HeadUtils.headFromHash("f7e541dfb4ba1f7dc28b548e347abbdc987ebe0e61c49fa87111ef1b2dcb2218"),
             "&d&lFN Power Xpansion R7",
             "&9This works at Night!",
             "&9Place and right click",
@@ -240,8 +224,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack FN_XPANSION_POWER_R8 = new SlimefunItemStack(
             "FN_POWER_XPANSION_POWER_R8",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode(
-                    "de31efefdd9551af8a4349d3d21e5ec8f37e53c801eb25b14279d6a89fe0c01e")),
+            HeadUtils.headFromHash("de31efefdd9551af8a4349d3d21e5ec8f37e53c801eb25b14279d6a89fe0c01e"),
             "&d&lFN Power Xpansion R8",
             "&9This works at Night!",
             "&9Place and right click",
@@ -251,8 +234,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack FN_XPANSION_POWER_R9 = new SlimefunItemStack(
             "FN_POWER_XPANSION_POWER_R9",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode(
-                    "6db32b15d7f32704ed626fa52d06fb2b4071d336fdbfe61e6e41c669d6e37f47")),
+            HeadUtils.headFromHash("6db32b15d7f32704ed626fa52d06fb2b4071d336fdbfe61e6e41c669d6e37f47"),
             "&d&lFN Power Xpansion R9",
             "&9This works at Night!",
             "&9Place and right click",
@@ -262,8 +244,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack FN_XPANSION_POWER_R10 = new SlimefunItemStack(
             "FN_POWER_XPANSION_POWER_R10",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode(
-                    "7b7c9b6a23f21cca2b362b85b36dece3d8389e363014defe5b92ff6ee64f1ae")),
+            HeadUtils.headFromHash("7b7c9b6a23f21cca2b362b85b36dece3d8389e363014defe5b92ff6ee64f1ae"),
             "&d&lFN Power Xpansion R10",
             "&9This works at Night!",
             "&9Place and right click",
@@ -273,8 +254,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack FN_XPANSION_POWER_R11 = new SlimefunItemStack(
             "FN_POWER_XPANSION_POWER_R11",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode(
-                    "7f9f356f5fe7d1bc92cddfaeba3ee773ac9df1cc4d1c2f8fe5f47013032c551d")),
+            HeadUtils.headFromHash("7f9f356f5fe7d1bc92cddfaeba3ee773ac9df1cc4d1c2f8fe5f47013032c551d"),
             "&d&lFN Power Xpansion R11",
             "&9This works at Night!",
             "&9Place and right click",
@@ -284,8 +264,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack FN_XPANSION_POWER_R12 = new SlimefunItemStack(
             "FN_POWER_XPANSION_POWER_R12",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode(
-                    "3464874df452c1d717eddd0fb3b848202ad15571245af6fade2ecf514f3c80bb")),
+            HeadUtils.headFromHash("3464874df452c1d717eddd0fb3b848202ad15571245af6fade2ecf514f3c80bb"),
             "&d&lFN Power Xpansion R12",
             "&9This works at Night!",
             "&9Place and right click",
@@ -824,7 +803,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack MACHINE_PART = new SlimefunItemStack(
             "FN_MACHINERY_MACHINE_PART",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("6ddd4a12da1cc2c9f9d6cd49fc778e3a11f3757de6dd312d70a0d47885189c0")),
+            HeadUtils.headFromHash("6ddd4a12da1cc2c9f9d6cd49fc778e3a11f3757de6dd312d70a0d47885189c0"),
             "&dMachine Part",
             "&fEssential Part for FN Machinery",
             "",
@@ -832,13 +811,13 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack MACHINE_PART_SCRAP = new SlimefunItemStack(
             "FN_MACHINERY_MACHINE_PART_SCRAP",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("6ddd4a12da1cc2c9f9d6cd49fc778e3a11f3757de6dd312d70a0d47885189c0")),
+            HeadUtils.headFromHash("6ddd4a12da1cc2c9f9d6cd49fc778e3a11f3757de6dd312d70a0d47885189c0"),
             "&dMachine Part",
             "&fCraft using metal scraps");
 
     public static final SlimefunItemStack COMPONENT_PART = new SlimefunItemStack(
             "FN_MACHINERY_COMPONENT_PART",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("74657e89167b17ed581e87ce4215ce8d47145ab34038202d5ccefb0a9bd0d8f4")),
+            HeadUtils.headFromHash("74657e89167b17ed581e87ce4215ce8d47145ab34038202d5ccefb0a9bd0d8f4"),
             "&dComponent Part",
             "&fEssential Part for FN Machinery",
             "",
@@ -846,13 +825,13 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack COMPONENT_PART_SCRAP = new SlimefunItemStack(
             "FN_MACHINERY_COMPONENT_PART_SCRAP",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("74657e89167b17ed581e87ce4215ce8d47145ab34038202d5ccefb0a9bd0d8f4")),
+            HeadUtils.headFromHash("74657e89167b17ed581e87ce4215ce8d47145ab34038202d5ccefb0a9bd0d8f4"),
             "&dComponent Part",
             "&fCraft using metal scraps");
 
     public static final SlimefunItemStack MOTOR_SWITCH = new SlimefunItemStack(
             "FN_MACHINERY_MOTOR_SWITCH",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("48748ce96cedbfecaa463966d8fb1ac83c408feea89bd60d76d6024d3befe")),
+            HeadUtils.headFromHash("48748ce96cedbfecaa463966d8fb1ac83c408feea89bd60d76d6024d3befe"),
             "&dMotor Switch",
             "&fEssential Part for FN Machinery",
             "",
@@ -860,13 +839,13 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack MOTOR_SWITCH_SCRAP = new SlimefunItemStack(
             "FN_MACHINERY_MOTOR_SWITCH_SCRAP",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("48748ce96cedbfecaa463966d8fb1ac83c408feea89bd60d76d6024d3befe")),
+            HeadUtils.headFromHash("48748ce96cedbfecaa463966d8fb1ac83c408feea89bd60d76d6024d3befe"),
             "&dMotor Switch",
             "&fCraft using metal scraps");
 
     public static final SlimefunItemStack POWER_COMPONENT = new SlimefunItemStack(
             "FN_MACHINERY_POWER_COMPONENT",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("25ba8456e92f0790222c19c06f61180a195af1008569ed352b93a3c6d9ec7a98")),
+            HeadUtils.headFromHash("25ba8456e92f0790222c19c06f61180a195af1008569ed352b93a3c6d9ec7a98"),
             "&dPower Component",
             "&fEssential Part for FN Machinery"
             , "&fand Power Xpansion",
@@ -875,13 +854,13 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack POWER_COMPONENT_SCRAP = new SlimefunItemStack(
             "FN_MACHINERY_POWER_COMPONENT_SCRAP",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("25ba8456e92f0790222c19c06f61180a195af1008569ed352b93a3c6d9ec7a98")),
+            HeadUtils.headFromHash("25ba8456e92f0790222c19c06f61180a195af1008569ed352b93a3c6d9ec7a98"),
             "&dPower Component",
             "&fCraft using metal scraps");
 
     public static final SlimefunItemStack GEAR_PART = new SlimefunItemStack(
             "FN_MACHINERY_GEAR_PART",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("faf0c95ceba34c7fe6d33404feb87b4184ccce143978622c1647feaed2b63274")),
+            HeadUtils.headFromHash("faf0c95ceba34c7fe6d33404feb87b4184ccce143978622c1647feaed2b63274"),
             "&dGear Part",
             "&fEssential Part for FN Machinery"
             , "&fand Power Xpansion",
@@ -890,13 +869,13 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack GEAR_PART_SCRAP = new SlimefunItemStack(
             "FN_MACHINERY_GEAR_PART_SCRAP",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("faf0c95ceba34c7fe6d33404feb87b4184ccce143978622c1647feaed2b63274")),
+            HeadUtils.headFromHash("faf0c95ceba34c7fe6d33404feb87b4184ccce143978622c1647feaed2b63274"),
             "&dGear Part",
             "&fCraft using metal scraps");
 
     public static final SlimefunItemStack THREAD_PART = new SlimefunItemStack(
             "FN_MACHINERY_THREAD_PART",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("87ec65d6649ac1bf7b282575cef299f8601e51d8418d6e546e4fc71b218f7")),
+            HeadUtils.headFromHash("87ec65d6649ac1bf7b282575cef299f8601e51d8418d6e546e4fc71b218f7"),
             "&dThread Part",
             "&fEssential Part for FN Machinery",
             "",
@@ -904,13 +883,13 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack THREAD_PART_SCRAP = new SlimefunItemStack(
             "FN_MACHINERY_THREAD_PART_SCRAP",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("87ec65d6649ac1bf7b282575cef299f8601e51d8418d6e546e4fc71b218f7")),
+            HeadUtils.headFromHash("87ec65d6649ac1bf7b282575cef299f8601e51d8418d6e546e4fc71b218f7"),
             "&dThread Part",
             "&fCraft using metal scraps");
 
     public static final SlimefunItemStack COMPRESSOR_PART = new SlimefunItemStack(
             "FN_MACHINERY_COMPRESSOR_PART",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("d3898f7c444223b7a91a8f038e224222fef8960cfbef94836b014a06ea4cba63")),
+            HeadUtils.headFromHash("d3898f7c444223b7a91a8f038e224222fef8960cfbef94836b014a06ea4cba63"),
             "&dCompressor Part",
             "&fEssential Part for FN Machinery",
             "",
@@ -918,7 +897,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack CONDENSER_PART = new SlimefunItemStack(
             "FN_MACHINERY_CONDENSER_PART",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("63be652b2e1b93ed8e93b427de455d446582e6c8d929f8fc96ac488a8f7f53")),
+            HeadUtils.headFromHash("63be652b2e1b93ed8e93b427de455d446582e6c8d929f8fc96ac488a8f7f53"),
             "&dCondenser Part",
             "&fEssential Part for FN Machinery",
             "",
@@ -926,7 +905,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack RECYCLER_PART = new SlimefunItemStack(
             "FN_MACHINERY_RECYCLER_PART",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("4817fc8e16b8e994efb908b71acd1d1352ca5aefa09fecc9339ebea450d83fb8")),
+            HeadUtils.headFromHash("4817fc8e16b8e994efb908b71acd1d1352ca5aefa09fecc9339ebea450d83fb8"),
             "&dRecycler Part",
             "&fEssential Part for FN Machinery",
             "",
@@ -934,7 +913,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack DOWNGRADER_PART = new SlimefunItemStack(
             "FN_MACHINERY_DOWNGRADER_PART",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("a44c5ce2eb643f8671c667e8802c9317ad8cc6af680d4ef671d8c0c63277900a")),
+            HeadUtils.headFromHash("a44c5ce2eb643f8671c667e8802c9317ad8cc6af680d4ef671d8c0c63277900a"),
             "&dDowngrader Part",
             "&fEssential Part for FN Machinery",
             "",
@@ -942,7 +921,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack FUNNEL_PART = new SlimefunItemStack(
             "FN_MACHINERY_FUNNEL_PART",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("bb2abd66939f4cb7257a88cf52fbc6fdceec1433ec2a6ef16d62e34f6238781")),
+            HeadUtils.headFromHash("bb2abd66939f4cb7257a88cf52fbc6fdceec1433ec2a6ef16d62e34f6238781"),
             "&dFunnel Part",
             "&fEssential Part for FN Machinery",
             "",
@@ -950,7 +929,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack FUNNEL_PART_SCRAP = new SlimefunItemStack(
             "FN_MACHINERY_FUNNEL_PART_SCRAP",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("bb2abd66939f4cb7257a88cf52fbc6fdceec1433ec2a6ef16d62e34f6238781")),
+            HeadUtils.headFromHash("bb2abd66939f4cb7257a88cf52fbc6fdceec1433ec2a6ef16d62e34f6238781"),
             "&dFunnel Part",
             "&fCraft using metal scraps");
 
@@ -1001,7 +980,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack UNBIND_RUNE = new SlimefunItemStack(
             "FN_MAGICAL_ITEMS_UNBIND_RUNE",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("4f01ec6331a3bc30a8204ec56398d08ca38788556bca9b81d776f6238d567367")),
+            HeadUtils.headFromHash("4f01ec6331a3bc30a8204ec56398d08ca38788556bca9b81d776f6238d567367"),
             "&6Unbind Rune",
             "&fA magical rune from psijic time",
             "",
@@ -1009,7 +988,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack SPIRAL_FIRE_RUNE = new SlimefunItemStack(
             "FN_MAGICAL_ITEMS_SPIRAL_FIRE_RUNE",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("8301aa86cafd4b2d732a9b4894cfcfc65edc828e8571b45dbf0a3ba96575cccf")),
+            HeadUtils.headFromHash("8301aa86cafd4b2d732a9b4894cfcfc65edc828e8571b45dbf0a3ba96575cccf"),
             "&cSpiral Fire Rune",
             "&fA heart full of fire is fire",
             "&fthat spirals within this rune",
@@ -1018,7 +997,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack SPIRIT_RUNE = new SlimefunItemStack(
             "FN_MAGICAL_ITEMS_SPIRIT_RUNE",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("c738b8af8d7ce1a26dc6d40180b3589403e11ef36a66d7c4590037732829542e")),
+            HeadUtils.headFromHash("c738b8af8d7ce1a26dc6d40180b3589403e11ef36a66d7c4590037732829542e"),
             "&fSpirit Rune",
             "&fSpirit thy come for",
             "&fI redeem thy soul",
@@ -1027,7 +1006,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack PESTILENCE_RUNE = new SlimefunItemStack(
             "FN_MAGICAL_ITEMS_PESTILENCE_RUNE",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("a8c4811395fbf7f620f05cc3175cef1515aaf775ba04a01045027f0693a90147")),
+            HeadUtils.headFromHash("a8c4811395fbf7f620f05cc3175cef1515aaf775ba04a01045027f0693a90147"),
             "&aPestilence Rune",
             "&fA rune from the black death",
             "&fperiod that holds a deadly sin",
@@ -1036,7 +1015,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack SPARKLING_RUNE = new SlimefunItemStack(
             "FN_MAGICAL_ITEMS_SPARKLING_RUNE",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("f1e2428cb359988f4c4ff0e61de21385c62269de19a69762d773223b75dd1666")),
+            HeadUtils.headFromHash("f1e2428cb359988f4c4ff0e61de21385c62269de19a69762d773223b75dd1666"),
             "&eSparkling Rune",
             "&fToo bright and too flashy",
             "&ffor this rune is too deadly",
@@ -1045,7 +1024,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack CLOUD_RUNE = new SlimefunItemStack(
             "FN_MAGICAL_ITEMS_CLOUD_RUNE",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("2273740d454de962484712f9835e35119b37ab867fa6982d5cc1f333c2334e59")),
+            HeadUtils.headFromHash("2273740d454de962484712f9835e35119b37ab867fa6982d5cc1f333c2334e59"),
             "&3Cloud Rune",
             "&fUp in the skies is where",
             "&fthe clouds lies",
@@ -1054,7 +1033,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack ICE_RUNE = new SlimefunItemStack(
             "FN_MAGICAL_ITEMS_ICE_RUNE",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("cdc57c75adf39ec6f0e0916049dd9671e98a8a1e600104e84e645c988950bd7")),
+            HeadUtils.headFromHash("cdc57c75adf39ec6f0e0916049dd9671e98a8a1e600104e84e645c988950bd7"),
             "&bIce Rune",
             "&fThe rune full of chill",
             "&fbut can you stay still",
@@ -1063,7 +1042,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack POWER_RUNE = new SlimefunItemStack(
             "FN_MAGICAL_ITEMS_POWER_RUNE",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("3b481c31dc683bdcb7d375a7c5db7ac7adf9e9fe8b6c04a64931613e29fe470e")),
+            HeadUtils.headFromHash("3b481c31dc683bdcb7d375a7c5db7ac7adf9e9fe8b6c04a64931613e29fe470e"),
             "&9Power Rune",
             "&fThe power from this rune",
             "&fcan do dangerous things",
@@ -1072,7 +1051,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack LINGER_RUNE = new SlimefunItemStack(
             "FN_MAGICAL_ITEMS_LINGER_RUNE",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("2c4a65c689b2d36409100a60c2ab8d3d0a67ce94eea3c1f7ac974fd893568b5d")),
+            HeadUtils.headFromHash("2c4a65c689b2d36409100a60c2ab8d3d0a67ce94eea3c1f7ac974fd893568b5d"),
             "&2Linger Rune",
             "&fIt lingers from top to",
             "&fbottom and soon the middle",
@@ -1081,7 +1060,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack AGILITY_RUNE = new SlimefunItemStack(
             "FN_MAGICAL_ITEMS_AGILITY_RUNE",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("35f4861aa5b22ee28a90e75dab45d221efd14c0b1ecc8ee998fb67e43bb8f3de")),
+            HeadUtils.headFromHash("35f4861aa5b22ee28a90e75dab45d221efd14c0b1ecc8ee998fb67e43bb8f3de"),
             "&eAgility Rune",
             "&fFaster means better but",
             "&fdoes it matter",
@@ -1090,7 +1069,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack INTELLECT_RUNE = new SlimefunItemStack(
             "FN_MAGICAL_ITEMS_INTELLECT_RUNE",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("977c1fc93216e96d435cf962e1173de8d1a249b644894d72676eba732fcd56e7")),
+            HeadUtils.headFromHash("977c1fc93216e96d435cf962e1173de8d1a249b644894d72676eba732fcd56e7"),
             "&9Intellect Rune",
             "&fVery useful rune in the",
             "&ftime of desperation",
@@ -1099,7 +1078,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack HEART_RUNE = new SlimefunItemStack(
             "FN_MAGICAL_ITEMS_HEART_RUNE",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("2c1c179ad51955f1522c48ea9931f09c162741b45e22e9d3feb682c7e5ed8274")),
+            HeadUtils.headFromHash("2c1c179ad51955f1522c48ea9931f09c162741b45e22e9d3feb682c7e5ed8274"),
             "&dHeart Rune",
             "&fRejuvenate through this rune",
             "&fas you sense the aura inside",
@@ -1108,7 +1087,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack BASIC_MACHINE_BLOCK = new SlimefunItemStack(
             "FN_MACHINERY_BASIC_MACHINE_BLOCK",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("883dd0f90df05fe6a09aaccaf54bc043e455e1c865bda1fd272e3f47fb9bb910")),
+            HeadUtils.headFromHash("883dd0f90df05fe6a09aaccaf54bc043e455e1c865bda1fd272e3f47fb9bb910"),
             "&dBasic Machine Block",
             "&fEssential Part for FN Machinery"
             , "&fand Power Xpansion",
@@ -1117,7 +1096,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack HIGHTECH_MACHINE_BLOCK = new SlimefunItemStack(
             "FN_MACHINERY_HIGHTECH_MACHINE_BLOCK",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("5a7b3b16e5d0c4cfd21c4eb9133e969aad7cc7303ccdf317512e26a4879b51")),
+            HeadUtils.headFromHash("5a7b3b16e5d0c4cfd21c4eb9133e969aad7cc7303ccdf317512e26a4879b51"),
             "&dHigh Tech Machine Block",
             "&fEssential Part for FN Machinery"
             , "&fand Power Xpansion",
@@ -1126,19 +1105,19 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack FN_ASSEMBLY_STATION = new SlimefunItemStack(
             "FN_ASSEMBLY_STATION",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("583150f055935058634576185977ffba49ff4679faa03ad0008feaa0161865b3")),
+            HeadUtils.headFromHash("583150f055935058634576185977ffba49ff4679faa03ad0008feaa0161865b3"),
             "&dFN Assembly Station"
     );
 
     public static final SlimefunItemStack FN_SCRAP_RECYCLER = new SlimefunItemStack(
             "FN_SCRAP_RECYCLER",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("656634b556caf5382de65038a10e4d79c7c18695048599df74f9c67c1e1e8736")),
+            HeadUtils.headFromHash("656634b556caf5382de65038a10e4d79c7c18695048599df74f9c67c1e1e8736"),
             "&dFN Scrap Recycler"
     );
 
     public static final SlimefunItemStack FN_METAL_SCRAPS = new SlimefunItemStack(
             "FN_METAL_SCRAPS",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("3ff0bee591e5f0000ef16f966b949adcb5c2f409a14ccfc5b91222fd925045db")),
+            HeadUtils.headFromHash("3ff0bee591e5f0000ef16f966b949adcb5c2f409a14ccfc5b91222fd925045db"),
             "&dMetal Scrap",
             "&fLeftover from downgrading machines"
             , "&fcan be used to craft FN Machinery Items",
@@ -1302,7 +1281,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack FN_MAGIC_ALTAR = new SlimefunItemStack(
             "FN_MAGIC_ALTAR",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("e34930125767c2e34ac939ec94a2aa4e79c381ee336760695c6c874cf12")),
+            HeadUtils.headFromHash("e34930125767c2e34ac939ec94a2aa4e79c381ee336760695c6c874cf12"),
             "&dFN Magic Altar"
     );
 
@@ -2448,7 +2427,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack FN_GEM_UPGRADES_DISPLAY_ITEM = new SlimefunItemStack(
             "FN_GEM_UPGRADES_DISPLAY_ITEM",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("d3623521c8111ad29e9dcf7acc56085a9ab07da732d1518976aee61d0b3e3bd6")),
+            HeadUtils.headFromHash("d3623521c8111ad29e9dcf7acc56085a9ab07da732d1518976aee61d0b3e3bd6"),
             "&bGem Tier Upgrades",
             "",
             "&dClick this item to know how to upgrade",
@@ -2458,7 +2437,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack FN_GEM_DOWNGRADES_DISPLAY_ITEM = new SlimefunItemStack(
             "FN_GEM_DOWNGRADE_DISPLAY_ITEM",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("36161daa3589ec9c8187459ac36fd4dd2646c040678d3bfacb72a2210c6c801c")),
+            HeadUtils.headFromHash("36161daa3589ec9c8187459ac36fd4dd2646c040678d3bfacb72a2210c6c801c"),
             "&bGem Tier Downgrades",
             "",
             "&dClick this item to know how to downgrade",
@@ -2468,7 +2447,7 @@ public class FNAmpItems {
 
     public static final SlimefunItemStack FN_GEM_FINE_JASPER_CRAFTING = new SlimefunItemStack(
             "FN_GEM_FINE_JASPER_CRAFTING",
-            PlayerHead.getItemStack(PlayerSkin.fromHashCode("aac15f6fcf2ce963ef4ca71f1a8685adb97eb769e1d11194cbbd2e964a88978c")),
+            HeadUtils.headFromHash("aac15f6fcf2ce963ef4ca71f1a8685adb97eb769e1d11194cbbd2e964a88978c"),
             "&bFine Jasper Gemstone",
             "",
             "&fA shiny gem needed for upgrading",

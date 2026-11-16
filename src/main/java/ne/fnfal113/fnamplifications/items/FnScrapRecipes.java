@@ -11,45 +11,45 @@ public class FnScrapRecipes {
 
     public static void setup(SlimefunAddon instance){
         new UnplaceableBlock(FNAmpItems.METAL_SCRAP_RECIPES, FNAmpItems.COMPONENT_PART_SCRAP, FnScrapRecycler.RECIPE_TYPE, new ItemStack[]{
-                FNAmpItems.FN_METAL_SCRAPS, null, FNAmpItems.FN_METAL_SCRAPS,
-                FNAmpItems.FN_METAL_SCRAPS, FNAmpItems.FN_METAL_SCRAPS, FNAmpItems.FN_METAL_SCRAPS,
-                FNAmpItems.FN_METAL_SCRAPS, null, FNAmpItems.FN_METAL_SCRAPS}, FNAmpItems.COMPONENT_PART)
+                FNAmpItems.FN_METAL_SCRAPS.item(), null, FNAmpItems.FN_METAL_SCRAPS.item(),
+                FNAmpItems.FN_METAL_SCRAPS.item(), FNAmpItems.FN_METAL_SCRAPS.item(), FNAmpItems.FN_METAL_SCRAPS.item(),
+                FNAmpItems.FN_METAL_SCRAPS.item(), null, FNAmpItems.FN_METAL_SCRAPS.item()}, FNAmpItems.COMPONENT_PART.item())
                 .register(instance);
 
         new UnplaceableBlock(FNAmpItems.METAL_SCRAP_RECIPES, FNAmpItems.GEAR_PART_SCRAP, FnScrapRecycler.RECIPE_TYPE, new ItemStack[]{
-                FNAmpItems.FN_METAL_SCRAPS, FNAmpItems.FN_METAL_SCRAPS, FNAmpItems.FN_METAL_SCRAPS,
-                FNAmpItems.FN_METAL_SCRAPS, null, FNAmpItems.FN_METAL_SCRAPS,
-                FNAmpItems.FN_METAL_SCRAPS, FNAmpItems.FN_METAL_SCRAPS, FNAmpItems.FN_METAL_SCRAPS}, FNAmpItems.GEAR_PART)
+                FNAmpItems.FN_METAL_SCRAPS.item(), FNAmpItems.FN_METAL_SCRAPS.item(), FNAmpItems.FN_METAL_SCRAPS.item(),
+                FNAmpItems.FN_METAL_SCRAPS.item(), null, FNAmpItems.FN_METAL_SCRAPS.item(),
+                FNAmpItems.FN_METAL_SCRAPS.item(), FNAmpItems.FN_METAL_SCRAPS.item(), FNAmpItems.FN_METAL_SCRAPS.item()}, FNAmpItems.GEAR_PART.item())
                 .register(instance);
 
         new UnplaceableBlock(FNAmpItems.METAL_SCRAP_RECIPES, FNAmpItems.MACHINE_PART_SCRAP, FnScrapRecycler.RECIPE_TYPE, new ItemStack[]{
-                FNAmpItems.FN_METAL_SCRAPS, FNAmpItems.FN_METAL_SCRAPS, FNAmpItems.FN_METAL_SCRAPS,
-                FNAmpItems.FN_METAL_SCRAPS, FNAmpItems.FN_METAL_SCRAPS, FNAmpItems.FN_METAL_SCRAPS,
-                FNAmpItems.FN_METAL_SCRAPS, null, FNAmpItems.FN_METAL_SCRAPS}, FNAmpItems.MACHINE_PART)
+                FNAmpItems.FN_METAL_SCRAPS.item(), FNAmpItems.FN_METAL_SCRAPS.item(), FNAmpItems.FN_METAL_SCRAPS.item(),
+                FNAmpItems.FN_METAL_SCRAPS.item(), FNAmpItems.FN_METAL_SCRAPS.item(), FNAmpItems.FN_METAL_SCRAPS.item(),
+                FNAmpItems.FN_METAL_SCRAPS.item(), null, FNAmpItems.FN_METAL_SCRAPS.item()}, FNAmpItems.MACHINE_PART.item())
                 .register(instance);
 
         new UnplaceableBlock(FNAmpItems.METAL_SCRAP_RECIPES, FNAmpItems.MOTOR_SWITCH_SCRAP, FnScrapRecycler.RECIPE_TYPE, new ItemStack[]{
-                FNAmpItems.FN_METAL_SCRAPS, FNAmpItems.FN_METAL_SCRAPS, FNAmpItems.FN_METAL_SCRAPS,
-                null, FNAmpItems.FN_METAL_SCRAPS, null,
-                FNAmpItems.FN_METAL_SCRAPS, FNAmpItems.FN_METAL_SCRAPS, FNAmpItems.FN_METAL_SCRAPS}, FNAmpItems.MOTOR_SWITCH)
+                FNAmpItems.FN_METAL_SCRAPS.item(), FNAmpItems.FN_METAL_SCRAPS.item(), FNAmpItems.FN_METAL_SCRAPS.item(),
+                null, FNAmpItems.FN_METAL_SCRAPS.item(), null,
+                FNAmpItems.FN_METAL_SCRAPS.item(), FNAmpItems.FN_METAL_SCRAPS.item(), FNAmpItems.FN_METAL_SCRAPS.item()}, FNAmpItems.MOTOR_SWITCH.item())
                 .register(instance);
 
         new UnplaceableBlock(FNAmpItems.METAL_SCRAP_RECIPES, FNAmpItems.THREAD_PART_SCRAP, FnScrapRecycler.RECIPE_TYPE, new ItemStack[]{
-                FNAmpItems.FN_METAL_SCRAPS, null, FNAmpItems.FN_METAL_SCRAPS,
-                null, FNAmpItems.FN_METAL_SCRAPS, null,
-                FNAmpItems.FN_METAL_SCRAPS, null, FNAmpItems.FN_METAL_SCRAPS}, FNAmpItems.THREAD_PART)
+                FNAmpItems.FN_METAL_SCRAPS.item(), null, FNAmpItems.FN_METAL_SCRAPS.item(),
+                null, FNAmpItems.FN_METAL_SCRAPS.item(), null,
+                FNAmpItems.FN_METAL_SCRAPS.item(), null, FNAmpItems.FN_METAL_SCRAPS.item()}, FNAmpItems.THREAD_PART.item())
                 .register(instance);
 
         new UnplaceableBlock(FNAmpItems.METAL_SCRAP_RECIPES, FNAmpItems.POWER_COMPONENT_SCRAP, FnScrapRecycler.RECIPE_TYPE, new ItemStack[]{
-                FNAmpItems.FN_METAL_SCRAPS, FNAmpItems.FN_METAL_SCRAPS, FNAmpItems.FN_METAL_SCRAPS,
-                FNAmpItems.FN_METAL_SCRAPS, FNAmpItems.FN_METAL_SCRAPS, null,
-                FNAmpItems.FN_METAL_SCRAPS, null, FNAmpItems.FN_METAL_SCRAPS}, FNAmpItems.POWER_COMPONENT)
+                FNAmpItems.FN_METAL_SCRAPS.item(), FNAmpItems.FN_METAL_SCRAPS.item(), FNAmpItems.FN_METAL_SCRAPS.item(),
+                FNAmpItems.FN_METAL_SCRAPS.item(), FNAmpItems.FN_METAL_SCRAPS.item(), null,
+                FNAmpItems.FN_METAL_SCRAPS.item(), null, FNAmpItems.FN_METAL_SCRAPS.item()}, FNAmpItems.POWER_COMPONENT.item())
                 .register(instance);
 
         new UnplaceableBlock(FNAmpItems.METAL_SCRAP_RECIPES, FNAmpItems.FUNNEL_PART_SCRAP, FnScrapRecycler.RECIPE_TYPE, new ItemStack[]{
-                FNAmpItems.FN_METAL_SCRAPS, FNAmpItems.FN_METAL_SCRAPS, FNAmpItems.FN_METAL_SCRAPS,
-                null, FNAmpItems.FN_METAL_SCRAPS, null,
-                FNAmpItems.FN_METAL_SCRAPS, null, FNAmpItems.FN_METAL_SCRAPS}, FNAmpItems.FUNNEL_PART)
+                FNAmpItems.FN_METAL_SCRAPS.item(), FNAmpItems.FN_METAL_SCRAPS.item(), FNAmpItems.FN_METAL_SCRAPS.item(),
+                null, FNAmpItems.FN_METAL_SCRAPS.item(), null,
+                FNAmpItems.FN_METAL_SCRAPS.item(), null, FNAmpItems.FN_METAL_SCRAPS.item()}, FNAmpItems.FUNNEL_PART.item())
                 .register(instance);
     }
 

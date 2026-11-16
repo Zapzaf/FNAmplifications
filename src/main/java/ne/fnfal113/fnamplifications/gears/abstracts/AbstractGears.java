@@ -58,7 +58,7 @@ public abstract class AbstractGears extends SlimefunItem {
         this.maxLevel = getConfigManager().getCustomConfig("fn-gear-level-settings").getInt(this.getId() + "." + "max-level");
         this.maxAttributes = getConfigManager().getCustomConfig("fn-gear-level-settings").getInt(this.getId() + "." + "max-attributes");
         this.equipmentSlot = equipmentSlot;
-        this.gearTask = new GearTask(getDefaultUsageKey(), getDefaultUsageKey2(), getDefaultUsageKey3(), item, startingProgress, incrementingProgress, getMaxLevel());
+        this.gearTask = new GearTask(getDefaultUsageKey(), getDefaultUsageKey2(), getDefaultUsageKey3(), item.item(), startingProgress, incrementingProgress, getMaxLevel());
     }
 
     public void initializeSettings(int maxLevel, int maxAttributes) {
