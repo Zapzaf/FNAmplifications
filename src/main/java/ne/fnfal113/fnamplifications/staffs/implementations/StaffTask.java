@@ -1,5 +1,6 @@
 package ne.fnfal113.fnamplifications.staffs.implementations;
 
+import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import ne.fnfal113.fnamplifications.FNAmplifications;
 import ne.fnfal113.fnamplifications.utils.Utils;
 
@@ -34,8 +35,8 @@ public class StaffTask {
         int maxUses = getMaxUses();
         String name = meta.getDisplayName();
 
-        // Only one staff of a stack breaks when the uses run out; the rest keep working.
-        StaffUses.Result result = StaffUses.spendUseInMainHand(player, item, meta, getStorageKey(), maxUses);
+        // One staff is split off a stack and used; when it breaks, the next one moves into the hand.
+        StaffUses.Result result = StaffUses.spendUseInMainHand(player, item, meta, getStorageKey(), maxUses, this::isSameStaff);
 
         if (result == StaffUses.Result.BROKE) {
             Utils.sendMessage(name + " &7has broken &8(&7out of uses&8)", player);
@@ -43,9 +44,7 @@ public class StaffTask {
             player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1 ,1);
         }
 
-        if (item.getAmount() > 0) {
-            showUses(player, item, name);
-        }
+        showUses(player, name);
 
         Objects.requireNonNull(player.getLocation().getWorld()).playSound(player.getLocation(), Sound.ENTITY_ILLUSIONER_CAST_SPELL, 1, 1);
     }
@@ -55,9 +54,20 @@ public class StaffTask {
         return FNAmplifications.getInstance().getConfigManager().getCustomConfig("staffs-settings").getInt(this.getId() + "." + "max-uses");
     }
 
-    /** Shows the uses left in the whole staff stack in the action bar of the player. */
-    public void showUses(Player player, ItemStack item, String staffName) {
-        String bar = StaffUses.usesBar(staffName, item, getStorageKey(), getMaxUses());
+    /** Whether {@code item} is a staff of this type. */
+    public boolean isSameStaff(ItemStack item) {
+        SlimefunItem sfItem = SlimefunItem.getByItem(item);
+        return sfItem != null && sfItem.getId().equals(getId());
+    }
+
+    /** Shows the uses left in all staffs of this type in the inventory, in the action bar of the player. */
+    public void showUses(Player player, String staffName) {
+        StaffUses.Totals totals = StaffUses.count(player.getInventory().getStorageContents(), this::isSameStaff, getStorageKey(), getMaxUses());
+        if (totals.staffs() == 0) {
+            return;
+        }
+
+        String bar = StaffUses.usesBar(staffName, totals);
         player.sendActionBar(LegacyComponentSerializer.legacySection().deserialize(Utils.colorTranslator(bar)));
     }
 

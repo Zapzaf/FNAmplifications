@@ -1,10 +1,12 @@
 package ne.fnfal113.fnamplifications.staffs.implementations;
 
 import ne.fnfal113.fnamplifications.staffs.implementations.StaffUses.Result;
+import ne.fnfal113.fnamplifications.staffs.implementations.StaffUses.Totals;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -19,6 +21,7 @@ import org.mockbukkit.mockbukkit.ServerMock;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -27,7 +30,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class TestStaffUses {
 
     private static final NamespacedKey KEY = new NamespacedKey("fnamplifications", "test_staff_uses");
-    private static final int MAX_USES = 10;
+    private static final int MAX = 10;
+    private static final String TP = "&cStaff of Teleportation";
+    private static final String FORCE = "&cStaff of Force";
 
     private ServerMock server;
     private PlayerMock player;
@@ -43,42 +48,96 @@ class TestStaffUses {
         MockBukkit.unmock();
     }
 
-    /** A staff as it comes out of crafting: full uses in the lore, nothing stored yet. */
-    private static ItemStack newStaff(int amount, int maxUses) {
-        ItemStack staff = new ItemStack(Material.BLAZE_ROD, amount);
-        ItemMeta meta = staff.getItemMeta();
-        meta.setDisplayName(color("&cStaff of Teleportation"));
-        meta.setLore(List.of(color("&dRight click to teleport"), "", color("&eUses: &e" + maxUses + " left")));
-        staff.setItemMeta(meta);
-        return staff;
-    }
+    // ---- helpers ----
 
     private static String color(String s) {
         return ChatColor.translateAlternateColorCodes('&', s);
     }
 
-    /** Uses the staff in the player's main hand, the way the staffs do. */
+    /** A staff as it comes out of crafting: full uses in the lore, nothing stored yet. */
+    private static ItemStack newStaff(String name, int amount, int maxUses) {
+        ItemStack staff = new ItemStack(Material.BLAZE_ROD, amount);
+        ItemMeta meta = staff.getItemMeta();
+        meta.setDisplayName(color(name));
+        meta.setLore(List.of(color("&dRight click to cast"), "", color("&eUses: &e" + maxUses + " left")));
+        staff.setItemMeta(meta);
+        return staff;
+    }
+
+    private static ItemStack newStaff(int amount) {
+        return newStaff(TP, amount, MAX);
+    }
+
+    /** A staff that has been used down to {@code left} uses, made by really using it. */
+    private ItemStack wornStaff(int left) {
+        ItemStack staff = newStaff(1);
+        for (int i = MAX; i > left; i--) {
+            StaffUses.spendUse(staff, staff.getItemMeta(), KEY, MAX);
+        }
+        return staff;
+    }
+
+    private static Predicate<ItemStack> sameAs(String name) {
+        String colored = color(name);
+        return it -> it != null && it.getType() == Material.BLAZE_ROD && it.hasItemMeta()
+                && colored.equals(it.getItemMeta().getDisplayName());
+    }
+
     private Result use() {
         ItemStack hand = player.getInventory().getItemInMainHand();
-        return StaffUses.spendUseInMainHand(player, hand, hand.getItemMeta(), KEY, MAX_USES);
+        return StaffUses.spendUseInMainHand(player, hand, hand.getItemMeta(), KEY, MAX, sameAs(TP));
     }
 
     private ItemStack hand() {
         return player.getInventory().getItemInMainHand();
     }
 
+    private Totals totals() {
+        return StaffUses.count(player.getInventory().getStorageContents(), sameAs(TP), KEY, MAX);
+    }
+
+    private String bar() {
+        return ChatColor.stripColor(color(StaffUses.usesBar(color(TP), totals())));
+    }
+
     private static String usesLine(ItemStack item) {
         return ChatColor.stripColor(item.getItemMeta().getLore().get(2));
     }
 
+    // ---- the reported bug ----
+
+    @Test
+    @DisplayName("Two staffs with 1 use each, stacked, have 2 uses in total (not 11) and give exactly 2")
+    void twoWornStaffsStacked() {
+        ItemStack a = wornStaff(1);
+        ItemStack b = wornStaff(1);
+        assertTrue(a.isSimilar(b), "two staffs with the same uses left stack");
+
+        ItemStack stack = a.clone();
+        stack.setAmount(2);
+        player.getInventory().setItemInMainHand(stack);
+
+        assertEquals(new Totals(2, 20, 2), totals());
+        assertEquals("Staff of Teleportation: 2/20 uses (2 staffs)", bar());
+
+        assertEquals(Result.BROKE, use());
+        assertEquals(new Totals(1, 10, 1), totals(), "one staff with 1 use left, not 10");
+        assertEquals("Uses: 1 left", usesLine(hand()));
+
+        assertEquals(Result.BROKE, use());
+        assertEquals(0, totals().staffs());
+        assertTrue(hand().getType().isAir());
+    }
+
+    // ---- single staffs ----
+
     @Test
     @DisplayName("Using a staff counts its uses down")
     void countsDown() {
-        player.getInventory().setItemInMainHand(newStaff(1, MAX_USES));
+        player.getInventory().setItemInMainHand(newStaff(1));
 
         assertEquals(Result.USED, use());
 
-        assertEquals(1, hand().getAmount());
         assertEquals("Uses: 9 left", usesLine(hand()));
         assertEquals(9, hand().getItemMeta().getPersistentDataContainer().get(KEY, PersistentDataType.INTEGER));
     }
@@ -86,86 +145,160 @@ class TestStaffUses {
     @Test
     @DisplayName("A single staff breaks on its last use")
     void singleStaffBreaks() {
-        player.getInventory().setItemInMainHand(newStaff(1, MAX_USES));
+        player.getInventory().setItemInMainHand(newStaff(1));
 
-        for (int i = 1; i < MAX_USES; i++) {
+        for (int i = 1; i < MAX; i++) {
             assertEquals(Result.USED, use(), "use " + i);
         }
         assertEquals(Result.BROKE, use());
 
-        assertTrue(hand().getType().isAir(), "the broken staff should be gone");
+        assertTrue(hand().getType().isAir());
+    }
+
+    // ---- stacks ----
+
+    @Test
+    @DisplayName("Using a stack splits one staff off; the rest go back to the inventory unused")
+    void usingStackSplitsOneOff() {
+        player.getInventory().setItemInMainHand(newStaff(16));
+
+        use();
+
+        assertEquals(1, hand().getAmount());
+        assertEquals("Uses: 9 left", usesLine(hand()));
+
+        ItemStack rest = findOther(sameAs(TP));
+        assertEquals(15, rest.getAmount());
+        assertTrue(rest.isSimilar(newStaff(1)), "the rest is still like newly crafted staffs");
+
+        assertEquals(new Totals(159, 160, 16), totals());
     }
 
     @Test
-    @DisplayName("Only one staff of a stack breaks on the last use")
-    void onlyOneStaffOfStackBreaks() {
-        player.getInventory().setItemInMainHand(newStaff(16, MAX_USES));
+    @DisplayName("When the staff in hand breaks, the next one moves into the hand")
+    void refillsHandAfterBreak() {
+        player.getInventory().setItemInMainHand(newStaff(3));
 
-        for (int i = 1; i < MAX_USES; i++) {
+        for (int i = 0; i < MAX; i++) {
             use();
         }
-        assertEquals(Result.BROKE, use());
 
         assertEquals(Material.BLAZE_ROD, hand().getType());
-        assertEquals(15, hand().getAmount(), "15 staffs should be left, not 0");
-    }
-
-    @Test
-    @DisplayName("The rest of the stack goes back to full uses after one breaks")
-    void restOfStackHasFullUses() {
-        player.getInventory().setItemInMainHand(newStaff(3, MAX_USES));
-
-        for (int i = 0; i < MAX_USES; i++) {
-            use();
-        }
-
-        assertEquals("Uses: 10 left", usesLine(hand()));
-        assertFalse(hand().getItemMeta().getPersistentDataContainer().has(KEY, PersistentDataType.INTEGER));
-
-        assertEquals(Result.USED, use());
-        assertEquals("Uses: 9 left", usesLine(hand()));
         assertEquals(2, hand().getAmount());
+        assertEquals(new Totals(20, 20, 2), totals());
     }
 
     @Test
-    @DisplayName("After one breaks, the rest of the stack still stacks with newly crafted staffs")
-    void resetStackStacksWithNewStaffs() {
-        player.getInventory().setItemInMainHand(newStaff(3, MAX_USES));
+    @DisplayName("The refill picks the most used staff first")
+    void refillPrefersMostUsed() {
+        player.getInventory().setItemInMainHand(wornStaff(1));
+        player.getInventory().setItem(10, newStaff(5));
+        player.getInventory().setItem(20, wornStaff(3));
 
-        for (int i = 0; i < MAX_USES; i++) {
-            use();
-        }
+        assertEquals(Result.BROKE, use());
 
-        assertTrue(hand().isSimilar(newStaff(1, MAX_USES)));
+        assertEquals("Uses: 3 left", usesLine(hand()));
+        assertEquals(1, hand().getAmount());
     }
 
-    @ParameterizedTest(name = "{0} staffs with {1} uses each give {2} uses in total")
-    @CsvSource({"1, 10, 10", "3, 10, 30", "64, 10, 640", "5, 1, 5", "2, 3, 6"})
-    @DisplayName("A stack gives every staff's uses before it is used up")
-    void wholeStackLasts(int amount, int maxUses, int expectedUses) {
-        player.getInventory().setItemInMainHand(newStaff(amount, maxUses));
+    @ParameterizedTest(name = "{0} new staffs with {1} uses each give exactly {2} uses")
+    @CsvSource({"1, 10, 10", "3, 10, 30", "64, 10, 640", "5, 1, 5", "16, 8, 128"})
+    @DisplayName("All staffs together give exactly their total uses")
+    void wholeStackGivesExactUses(int amount, int maxUses, int expected) {
+        player.getInventory().setItemInMainHand(newStaff(TP, amount, maxUses));
 
         int uses = 0;
-        int broke = 0;
         while (!hand().getType().isAir()) {
+            int before = StaffUses.count(player.getInventory().getStorageContents(), sameAs(TP), KEY, maxUses).usesLeft();
             ItemStack h = hand();
-            if (StaffUses.spendUseInMainHand(player, h, h.getItemMeta(), KEY, maxUses) == Result.BROKE) {
-                broke++;
-            }
+            StaffUses.spendUseInMainHand(player, h, h.getItemMeta(), KEY, maxUses, sameAs(TP));
             uses++;
-            assertTrue(uses <= expectedUses, "the stack lasted longer than expected");
+            int after = StaffUses.count(player.getInventory().getStorageContents(), sameAs(TP), KEY, maxUses).usesLeft();
+            assertEquals(before - 1, after, "each use takes exactly one off the total");
+            assertTrue(uses <= expected, "gave more uses than the staffs have");
         }
 
-        assertEquals(expectedUses, uses);
-        assertEquals(amount, broke, "every staff should break exactly once");
+        assertEquals(expected, uses);
     }
 
     @Test
-    @DisplayName("Staffs from before the fix (lore 'Uses: left') get their lore fixed on use")
+    @DisplayName("Worn staffs stacked together give exactly their combined uses")
+    void wornStackGivesExactUses() {
+        ItemStack stack = wornStaff(4);
+        stack.setAmount(3);
+        player.getInventory().setItemInMainHand(stack);
+
+        assertEquals(new Totals(12, 30, 3), totals());
+
+        int uses = 0;
+        while (!hand().getType().isAir()) {
+            use();
+            uses++;
+        }
+        assertEquals(12, uses);
+    }
+
+    @Test
+    @DisplayName("Staffs with different uses left don't stack, so they can't be merged into wrong counts")
+    void differentUsesDontStack() {
+        assertFalse(wornStaff(9).isSimilar(newStaff(1)));
+        assertFalse(wornStaff(1).isSimilar(wornStaff(2)));
+    }
+
+    // ---- action bar ----
+
+    @Test
+    @DisplayName("A full stack of 16 staffs with 8 uses shows 128/128")
+    void barFullStack() {
+        player.getInventory().setItemInMainHand(newStaff(TP, 16, 8));
+
+        Totals t = StaffUses.count(player.getInventory().getStorageContents(), sameAs(TP), KEY, 8);
+        assertEquals("Staff of Teleportation: 128/128 uses (16 staffs)", ChatColor.stripColor(color(StaffUses.usesBar(color(TP), t))));
+    }
+
+    @Test
+    @DisplayName("The action bar counts all staffs of that type in the inventory, and only that type")
+    void barCountsWholeInventory() {
+        player.getInventory().setItemInMainHand(wornStaff(7));
+        player.getInventory().setItem(9, newStaff(4));
+        player.getInventory().setItem(30, newStaff(FORCE, 5, MAX));
+
+        assertEquals(new Totals(47, 50, 5), totals());
+        assertEquals("Staff of Teleportation: 47/50 uses (5 staffs)", bar());
+    }
+
+    @Test
+    @DisplayName("A single staff shows no staff count")
+    void barSingleStaff() {
+        player.getInventory().setItemInMainHand(newStaff(1));
+        assertEquals("Staff of Teleportation: 10/10 uses", bar());
+    }
+
+    // ---- edge cases ----
+
+    @Test
+    @DisplayName("If the inventory is full, the rest of the stack drops at the player's feet")
+    void fullInventoryDropsRest() {
+        for (int slot = 0; slot < 36; slot++) {
+            player.getInventory().setItem(slot, new ItemStack(Material.DIRT, 64));
+        }
+        player.getInventory().setItemInMainHand(newStaff(5));
+
+        use();
+
+        assertEquals(1, hand().getAmount());
+        List<Item> dropped = List.copyOf(player.getWorld().getEntitiesByClass(Item.class));
+        assertEquals(1, dropped.size());
+        assertEquals(4, dropped.get(0).getItemStack().getAmount());
+        assertTrue(dropped.get(0).getItemStack().isSimilar(newStaff(1)));
+    }
+
+    @Test
+    @DisplayName("Staffs from before the lore fix ('Uses: left') get their lore fixed on use")
     void fixesOldLore() {
-        ItemStack staff = newStaff(1, MAX_USES);
+        ItemStack staff = newStaff(1);
         ItemMeta meta = staff.getItemMeta();
-        meta.setLore(List.of(color("&dRight click to teleport"), "", color("&eUses: &eleft")));
+        meta.setLore(List.of(color("&dRight click to cast"), "", color("&eUses: &eleft")));
         staff.setItemMeta(meta);
         player.getInventory().setItemInMainHand(staff);
 
@@ -175,127 +308,41 @@ class TestStaffUses {
     }
 
     @Test
-    @DisplayName("Other changes the staff made to the item are kept")
-    void keepsPendingMetaChanges() {
-        player.getInventory().setItemInMainHand(newStaff(2, MAX_USES));
-        NamespacedKey other = new NamespacedKey("fnamplifications", "stored_entity");
+    @DisplayName("Other changes the staff made go to the used staff only, not to the rest of the stack")
+    void pendingMetaGoesToUsedStaffOnly() {
+        player.getInventory().setItemInMainHand(newStaff(3));
+        NamespacedKey stored = new NamespacedKey("fnamplifications", "stored_entity");
 
         ItemStack h = hand();
         ItemMeta meta = h.getItemMeta();
-        meta.getPersistentDataContainer().set(other, PersistentDataType.STRING, "zombie");
-        StaffUses.spendUseInMainHand(player, h, meta, KEY, MAX_USES);
+        meta.getPersistentDataContainer().set(stored, PersistentDataType.STRING, "zombie");
+        StaffUses.spendUseInMainHand(player, h, meta, KEY, MAX, sameAs(TP));
 
-        assertEquals("zombie", hand().getItemMeta().getPersistentDataContainer().get(other, PersistentDataType.STRING));
-        assertEquals("Uses: 9 left", usesLine(hand()));
-    }
-
-    // ---- Totals shown in the action bar ----
-
-    private static final int EIGHT = 8;
-
-    private Result useWith(int maxUses) {
-        ItemStack h = hand();
-        return StaffUses.spendUseInMainHand(player, h, h.getItemMeta(), KEY, maxUses);
-    }
-
-    private static String bar(ItemStack item, int maxUses) {
-        return ChatColor.stripColor(color(StaffUses.usesBar(color("&cStaff of Teleportation"), item, KEY, maxUses)));
+        assertEquals("zombie", hand().getItemMeta().getPersistentDataContainer().get(stored, PersistentDataType.STRING));
+        ItemStack rest = findOther(sameAs(TP));
+        assertFalse(rest.getItemMeta().getPersistentDataContainer().has(stored, PersistentDataType.STRING));
     }
 
     @Test
-    @DisplayName("A full stack of 16 staffs with 8 uses shows 128/128")
-    void fullStackTotal() {
-        ItemStack stack = newStaff(16, EIGHT);
+    @DisplayName("Other staff types are never moved into the hand")
+    void otherTypesNotRefilled() {
+        player.getInventory().setItemInMainHand(wornStaff(1));
+        player.getInventory().setItem(5, newStaff(FORCE, 4, MAX));
 
-        assertEquals(128, StaffUses.totalUsesLeft(stack, KEY, EIGHT));
-        assertEquals(128, StaffUses.totalUses(stack, EIGHT));
-        assertEquals("Staff of Teleportation: 128/128 uses (16 staffs)", bar(stack, EIGHT));
-    }
-
-    @Test
-    @DisplayName("Each use takes one off the stack total")
-    void useCountsDownTotal() {
-        player.getInventory().setItemInMainHand(newStaff(16, EIGHT));
-
-        useWith(EIGHT);
-        assertEquals("Staff of Teleportation: 127/128 uses (16 staffs)", bar(hand(), EIGHT));
-
-        useWith(EIGHT);
-        assertEquals("Staff of Teleportation: 126/128 uses (16 staffs)", bar(hand(), EIGHT));
-    }
-
-    @Test
-    @DisplayName("When one staff breaks, the stack shows 120/120 with 15 staffs")
-    void totalAfterOneBreaks() {
-        player.getInventory().setItemInMainHand(newStaff(16, EIGHT));
-
-        for (int i = 0; i < EIGHT; i++) {
-            useWith(EIGHT);
-        }
-
-        assertEquals("Staff of Teleportation: 120/120 uses (15 staffs)", bar(hand(), EIGHT));
-    }
-
-    @Test
-    @DisplayName("Taking one staff out of a full stack of 16 leaves 120/120, and the one taken out shows 8/8")
-    void takingOneOut() {
-        ItemStack stack = newStaff(16, EIGHT);
-        ItemStack takenOut = stack.clone();
-        takenOut.setAmount(1);
-        stack.setAmount(15);
-
-        assertEquals("Staff of Teleportation: 120/120 uses (15 staffs)", bar(stack, EIGHT));
-        assertEquals("Staff of Teleportation: 8/8 uses", bar(takenOut, EIGHT));
-    }
-
-    @Test
-    @DisplayName("The total follows the stack size after splitting a used stack")
-    void totalFollowsSplit() {
-        player.getInventory().setItemInMainHand(newStaff(16, EIGHT));
-        for (int i = 0; i < 3; i++) {
-            useWith(EIGHT);
-        }
-        assertEquals("Staff of Teleportation: 125/128 uses (16 staffs)", bar(hand(), EIGHT));
-
-        // Both halves of a split carry the current staff's uses left (5 of 8).
-        ItemStack ten = hand().clone();
-        ten.setAmount(10);
-        ItemStack six = hand().clone();
-        six.setAmount(6);
-
-        assertEquals("Staff of Teleportation: 77/80 uses (10 staffs)", bar(ten, EIGHT));
-        assertEquals("Staff of Teleportation: 45/48 uses (6 staffs)", bar(six, EIGHT));
-    }
-
-    @Test
-    @DisplayName("The action bar total matches the uses the stack really gives")
-    void totalMatchesRealUses() {
-        player.getInventory().setItemInMainHand(newStaff(5, EIGHT));
-
-        int expected = StaffUses.totalUsesLeft(hand(), KEY, EIGHT);
-        int uses = 0;
-        while (!hand().getType().isAir()) {
-            assertEquals(expected - uses, StaffUses.totalUsesLeft(hand(), KEY, EIGHT), "after " + uses + " uses");
-            useWith(EIGHT);
-            uses++;
-        }
-
-        assertEquals(expected, uses);
-        assertEquals(0, StaffUses.totalUsesLeft(hand(), KEY, EIGHT));
-    }
-
-    @Test
-    @DisplayName("Staffs in other inventory slots are not touched")
-    void otherSlotsUntouched() {
-        player.getInventory().setItemInMainHand(newStaff(1, MAX_USES));
-        player.getInventory().setItem(5, newStaff(4, MAX_USES));
-
-        for (int i = 1; i < MAX_USES; i++) {
-            use();
-        }
         assertEquals(Result.BROKE, use());
 
         assertTrue(hand().getType().isAir());
         assertEquals(4, player.getInventory().getItem(5).getAmount());
+    }
+
+    /** The first stack accepted by {@code filter} outside the held slot. */
+    private ItemStack findOther(Predicate<ItemStack> filter) {
+        ItemStack[] storage = player.getInventory().getStorageContents();
+        for (int slot = 0; slot < storage.length; slot++) {
+            if (slot != player.getInventory().getHeldItemSlot() && storage[slot] != null && filter.test(storage[slot])) {
+                return storage[slot];
+            }
+        }
+        throw new AssertionError("no other staff stack in the inventory");
     }
 }

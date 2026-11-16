@@ -38,7 +38,7 @@ public class StaffListener implements Listener {
         }
 
         if (SlimefunItem.getByItem(item) instanceof AbstractStaff staff) {
-            staff.getStaffTask().showUses(event.getPlayer(), item, item.getItemMeta().getDisplayName());
+            staff.getStaffTask().showUses(event.getPlayer(), item.getItemMeta().getDisplayName());
         }
     }
 
