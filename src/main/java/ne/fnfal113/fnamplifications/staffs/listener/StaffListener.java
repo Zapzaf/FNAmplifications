@@ -3,8 +3,10 @@ package ne.fnfal113.fnamplifications.staffs.listener;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import ne.fnfal113.fnamplifications.staffs.abstracts.AbstractStaff;
 import ne.fnfal113.fnamplifications.staffs.handlers.EntityStaffImpl;
+import ne.fnfal113.fnamplifications.staffs.implementations.StaffUseGuard;
 import ne.fnfal113.fnamplifications.utils.Keys;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
@@ -19,6 +21,7 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -28,6 +31,14 @@ import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class StaffListener implements Listener {
+
+    /** One cast per click: right-clicking a block fires the interact event twice once the staff changed. */
+    private final StaffUseGuard useGuard = new StaffUseGuard();
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        useGuard.forget(event.getPlayer().getUniqueId());
+    }
 
     /** Shows the uses left in a staff stack when the player switches to it. */
     @EventHandler(ignoreCancelled = true)
@@ -129,11 +140,13 @@ public class StaffListener implements Listener {
 
         if(!isRightHand) return;
 
-        if(!(stick instanceof EntityStaffImpl) && actionRight) {
-            ((AbstractStaff) stick).onClick(e);
-        } else if (stick instanceof EntityStaffImpl && !actionRight) {
-            ((AbstractStaff) stick).onClick(e);
-        }
+        boolean casts = (!(stick instanceof EntityStaffImpl) && actionRight) || (stick instanceof EntityStaffImpl && !actionRight);
+        if(!casts) return;
+
+        // Right-clicking a block fires this event twice once the staff changed; cast only once per click.
+        if(!useGuard.tryUse(p.getUniqueId(), Bukkit.getCurrentTick())) return;
+
+        ((AbstractStaff) stick).onClick(e);
 
     }
 
