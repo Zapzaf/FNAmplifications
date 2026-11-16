@@ -74,6 +74,41 @@ public final class StaffUses {
         return result;
     }
 
+    /** The uses left on the staff currently in use (the one at the top of the stack). */
+    public static int usesLeftOnCurrent(@Nonnull ItemStack item, @Nonnull NamespacedKey key, int maxUses) {
+        if (!item.hasItemMeta()) {
+            return maxUses;
+        }
+        return item.getItemMeta().getPersistentDataContainer().getOrDefault(key, PersistentDataType.INTEGER, maxUses);
+    }
+
+    /** The uses left in the whole stack: every untouched staff's uses plus what is left on the current one. */
+    public static int totalUsesLeft(@Nonnull ItemStack item, @Nonnull NamespacedKey key, int maxUses) {
+        if (item.getType().isAir() || item.getAmount() <= 0) {
+            return 0;
+        }
+        return (item.getAmount() - 1) * maxUses + usesLeftOnCurrent(item, key, maxUses);
+    }
+
+    /** The uses a full stack of this size has. */
+    public static int totalUses(@Nonnull ItemStack item, int maxUses) {
+        if (item.getType().isAir()) {
+            return 0;
+        }
+        return item.getAmount() * maxUses;
+    }
+
+    /**
+     * The action bar text for a staff stack, with legacy {@code &} color codes,
+     * for example {@code "Staff of Teleportation: 127/128 uses (16 staffs)"}.
+     */
+    @Nonnull
+    public static String usesBar(@Nonnull String staffName, @Nonnull ItemStack item, @Nonnull NamespacedKey key, int maxUses) {
+        int amount = item.getAmount();
+        return staffName + "&7: &e" + totalUsesLeft(item, key, maxUses) + "&7/&e" + totalUses(item, maxUses) + " &7uses"
+                + (amount > 1 ? " &8(" + amount + " staffs)" : "");
+    }
+
     private static void setUsesLore(ItemStack item, ItemMeta meta, int uses) {
         Utils.setLoreByPdc(item, meta, String.valueOf(uses), LORE_PREFIX, "&e", "&e", " left");
     }

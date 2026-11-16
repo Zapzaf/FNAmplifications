@@ -189,6 +189,101 @@ class TestStaffUses {
         assertEquals("Uses: 9 left", usesLine(hand()));
     }
 
+    // ---- Totals shown in the action bar ----
+
+    private static final int EIGHT = 8;
+
+    private Result useWith(int maxUses) {
+        ItemStack h = hand();
+        return StaffUses.spendUseInMainHand(player, h, h.getItemMeta(), KEY, maxUses);
+    }
+
+    private static String bar(ItemStack item, int maxUses) {
+        return ChatColor.stripColor(color(StaffUses.usesBar(color("&cStaff of Teleportation"), item, KEY, maxUses)));
+    }
+
+    @Test
+    @DisplayName("A full stack of 16 staffs with 8 uses shows 128/128")
+    void fullStackTotal() {
+        ItemStack stack = newStaff(16, EIGHT);
+
+        assertEquals(128, StaffUses.totalUsesLeft(stack, KEY, EIGHT));
+        assertEquals(128, StaffUses.totalUses(stack, EIGHT));
+        assertEquals("Staff of Teleportation: 128/128 uses (16 staffs)", bar(stack, EIGHT));
+    }
+
+    @Test
+    @DisplayName("Each use takes one off the stack total")
+    void useCountsDownTotal() {
+        player.getInventory().setItemInMainHand(newStaff(16, EIGHT));
+
+        useWith(EIGHT);
+        assertEquals("Staff of Teleportation: 127/128 uses (16 staffs)", bar(hand(), EIGHT));
+
+        useWith(EIGHT);
+        assertEquals("Staff of Teleportation: 126/128 uses (16 staffs)", bar(hand(), EIGHT));
+    }
+
+    @Test
+    @DisplayName("When one staff breaks, the stack shows 120/120 with 15 staffs")
+    void totalAfterOneBreaks() {
+        player.getInventory().setItemInMainHand(newStaff(16, EIGHT));
+
+        for (int i = 0; i < EIGHT; i++) {
+            useWith(EIGHT);
+        }
+
+        assertEquals("Staff of Teleportation: 120/120 uses (15 staffs)", bar(hand(), EIGHT));
+    }
+
+    @Test
+    @DisplayName("Taking one staff out of a full stack of 16 leaves 120/120, and the one taken out shows 8/8")
+    void takingOneOut() {
+        ItemStack stack = newStaff(16, EIGHT);
+        ItemStack takenOut = stack.clone();
+        takenOut.setAmount(1);
+        stack.setAmount(15);
+
+        assertEquals("Staff of Teleportation: 120/120 uses (15 staffs)", bar(stack, EIGHT));
+        assertEquals("Staff of Teleportation: 8/8 uses", bar(takenOut, EIGHT));
+    }
+
+    @Test
+    @DisplayName("The total follows the stack size after splitting a used stack")
+    void totalFollowsSplit() {
+        player.getInventory().setItemInMainHand(newStaff(16, EIGHT));
+        for (int i = 0; i < 3; i++) {
+            useWith(EIGHT);
+        }
+        assertEquals("Staff of Teleportation: 125/128 uses (16 staffs)", bar(hand(), EIGHT));
+
+        // Both halves of a split carry the current staff's uses left (5 of 8).
+        ItemStack ten = hand().clone();
+        ten.setAmount(10);
+        ItemStack six = hand().clone();
+        six.setAmount(6);
+
+        assertEquals("Staff of Teleportation: 77/80 uses (10 staffs)", bar(ten, EIGHT));
+        assertEquals("Staff of Teleportation: 45/48 uses (6 staffs)", bar(six, EIGHT));
+    }
+
+    @Test
+    @DisplayName("The action bar total matches the uses the stack really gives")
+    void totalMatchesRealUses() {
+        player.getInventory().setItemInMainHand(newStaff(5, EIGHT));
+
+        int expected = StaffUses.totalUsesLeft(hand(), KEY, EIGHT);
+        int uses = 0;
+        while (!hand().getType().isAir()) {
+            assertEquals(expected - uses, StaffUses.totalUsesLeft(hand(), KEY, EIGHT), "after " + uses + " uses");
+            useWith(EIGHT);
+            uses++;
+        }
+
+        assertEquals(expected, uses);
+        assertEquals(0, StaffUses.totalUsesLeft(hand(), KEY, EIGHT));
+    }
+
     @Test
     @DisplayName("Staffs in other inventory slots are not touched")
     void otherSlotsUntouched() {

@@ -18,14 +18,29 @@ import org.bukkit.event.entity.AreaEffectCloudApplyEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class StaffListener implements Listener {
+
+    /** Shows the uses left in a staff stack when the player switches to it. */
+    @EventHandler(ignoreCancelled = true)
+    public void onSwitchToStaff(PlayerItemHeldEvent event) {
+        ItemStack item = event.getPlayer().getInventory().getItem(event.getNewSlot());
+        if (item == null || item.getType().isAir() || !item.hasItemMeta()) {
+            return;
+        }
+
+        if (SlimefunItem.getByItem(item) instanceof AbstractStaff staff) {
+            staff.getStaffTask().showUses(event.getPlayer(), item, item.getItemMeta().getDisplayName());
+        }
+    }
 
     @EventHandler
     public void onEffectApply(AreaEffectCloudApplyEvent event){

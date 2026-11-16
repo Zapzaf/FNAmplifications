@@ -40,7 +40,7 @@ public abstract class AbstractStaff extends SlimefunItem {
         Material matchMaterial = Material.matchMaterial(FNAmplifications.getInstance().getConfigManager().getCustomConfig("staffs-settings").getString(this.getId() + "." + "staff-material").toUpperCase());
 
         if(matchMaterial != null){
-            this.getItem().setType(matchMaterial);
+            ItemTemplates.of(this).setType(matchMaterial);
         } else {
             FNAmplifications.getInstance().getLogger().log(Level.INFO, "Invalid Material ID for " + this.getId() + (". Using BLAZE_ROD as default material."));
         }
