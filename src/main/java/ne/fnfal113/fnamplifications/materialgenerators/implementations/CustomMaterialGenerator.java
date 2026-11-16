@@ -1,5 +1,6 @@
 package ne.fnfal113.fnamplifications.materialgenerators.implementations;
 
+import ne.fnfal113.fnamplifications.utils.ItemTemplates;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -88,7 +89,7 @@ public class CustomMaterialGenerator extends SlimefunItem implements InventoryBl
         super(itemGroup, item, recipeType, recipe);
 
         FNAmplifications.getInstance().getConfigManager().initializeConfig(item.getItemId(), "tickrate" , tickRate, "material-gen-tickrate");
-        Utils.setLoreByConfigValue(this.getItem(), this.getId(), "tickrate", "ticks", "&6", " ticks", "material-gen-tickrate");
+        Utils.setLoreByConfigValue(ItemTemplates.of(this), this.getId(), "tickrate", "ticks", "&6", " ticks", "material-gen-tickrate");
 
         createPreset(this, getInventoryTitle(), blockMenuPreset -> {
             for (int i = 0; i < 9; i++) {

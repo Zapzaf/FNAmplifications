@@ -1,5 +1,6 @@
 package ne.fnfal113.fnamplifications.gems.abstracts;
 
+import ne.fnfal113.fnamplifications.utils.ItemTemplates;
 import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
@@ -19,7 +20,7 @@ public abstract class AbstractGemUnbinder extends SlimefunItem {
 
         // initialize config values on object construct
         FNAmplifications.getInstance().getConfigManager().initializeConfig(this.getId(), "unbind-chance", chance, "unbind-gem-settings");
-        Utils.setLoreByConfigValue(this.getItem(), this.getId(), "unbind-chance", "%", "&e", "%", "unbind-gem-settings");
+        Utils.setLoreByConfigValue(ItemTemplates.of(this), this.getId(), "unbind-chance", "%", "&e", "%", "unbind-gem-settings");
         this.chance = FNAmplifications.getInstance().getConfigManager().getCustomConfig("unbind-gem-settings").getInt(this.getId() + "." + "unbind-chance");
     }
 

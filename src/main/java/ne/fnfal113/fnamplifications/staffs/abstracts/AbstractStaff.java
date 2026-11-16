@@ -1,5 +1,6 @@
 package ne.fnfal113.fnamplifications.staffs.abstracts;
 
+import ne.fnfal113.fnamplifications.utils.ItemTemplates;
 import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
@@ -32,7 +33,7 @@ public abstract class AbstractStaff extends SlimefunItem {
         this.staffTask = new StaffTask(getDefaultUsageKey(), this.getId());
         setConfigValues(maxUses, this.getItem().getType().toString());
         setMaterial();
-        Utils.setLoreByConfigValue(this.getItem(), this.getId(), "max-uses", "left", "&e", " left", "staffs-settings");
+        Utils.setLoreByConfigValue(ItemTemplates.of(this), this.getId(), "max-uses", "left", "&e", " left", "staffs-settings");
     }
 
     public void setMaterial(){

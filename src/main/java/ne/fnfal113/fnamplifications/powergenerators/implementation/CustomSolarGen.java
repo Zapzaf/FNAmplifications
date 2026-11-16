@@ -1,5 +1,6 @@
 package ne.fnfal113.fnamplifications.powergenerators.implementation;
 
+import ne.fnfal113.fnamplifications.utils.ItemTemplates;
 import java.util.List;
 
 import org.bukkit.Location;
@@ -33,7 +34,7 @@ public class CustomSolarGen extends SlimefunItem implements EnergyNetProvider {
         this.capacity = capacity;
 
         setConfigValues(dayEnergy, capacity);
-        setLore(this.getItem());
+        setLore(ItemTemplates.of(this));
     }
 
     public void setLore(ItemStack itemStack){

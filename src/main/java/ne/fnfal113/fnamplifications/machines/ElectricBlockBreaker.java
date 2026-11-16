@@ -1,5 +1,6 @@
 package ne.fnfal113.fnamplifications.machines;
 
+import ne.fnfal113.fnamplifications.utils.ItemTemplates;
 import io.github.thebusybiscuit.slimefun4.api.MinecraftVersion;
 import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.ItemState;
@@ -140,7 +141,7 @@ public class ElectricBlockBreaker extends SlimefunItem implements InventoryBlock
 
         FNAmplifications.getInstance().getConfigManager().initializeConfig(this.getId(), "tickrate", tickRate, "block-breaker-tickrate");
         setRate();
-        Utils.setLoreByConfigValue(this.getItem(), this.getId(), "tickrate", "ticks", "&e", " ticks", "block-breaker-tickrate");
+        Utils.setLoreByConfigValue(ItemTemplates.of(this), this.getId(), "tickrate", "ticks", "&e", " ticks", "block-breaker-tickrate");
         addItemHandler(
             new BlockTicker() {
                 @Override

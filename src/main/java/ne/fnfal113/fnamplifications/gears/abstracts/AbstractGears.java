@@ -1,5 +1,6 @@
 package ne.fnfal113.fnamplifications.gears.abstracts;
 
+import ne.fnfal113.fnamplifications.utils.ItemTemplates;
 import com.google.gson.JsonObject;
 import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
@@ -130,10 +131,10 @@ public abstract class AbstractGears extends SlimefunItem {
     }
 
     public final void setUnbreakable() {
-        ItemMeta meta = this.getItem().getItemMeta();
+        ItemMeta meta = ItemTemplates.of(this).getItemMeta();
         meta.setUnbreakable(getConfigManager().getCustomConfig("fn-gear-unbreakable-settings").getBoolean(this.getId() + "." + "unbreakable"));
 
-        this.getItem().setItemMeta(meta);
+        ItemTemplates.of(this).setItemMeta(meta);
     }
 
     public void onHit(EntityDamageByEntityEvent event, ItemStack armour) {

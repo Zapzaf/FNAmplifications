@@ -1,5 +1,6 @@
 package ne.fnfal113.fnamplifications.gems.abstracts;
 
+import ne.fnfal113.fnamplifications.utils.ItemTemplates;
 import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
@@ -41,7 +42,7 @@ public abstract class AbstractGem extends SlimefunItem {
             setConfigChanceValues(defaultChance);
             setConfigWorldSettings();
 
-            Utils.setGemTierLore(this.getItem(), this.getId(),
+            Utils.setGemTierLore(ItemTemplates.of(this), this.getId(),
                 "chance", "%", "&e", "%", 4, "gem-settings");
             
             this.chance = FNAmplifications.getInstance().getConfigManager().getCustomConfig("gem-settings").getInt(this.getId() + "." + "chance");

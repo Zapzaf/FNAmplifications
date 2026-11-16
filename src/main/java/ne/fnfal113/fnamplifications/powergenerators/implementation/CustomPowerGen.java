@@ -1,5 +1,6 @@
 package ne.fnfal113.fnamplifications.powergenerators.implementation;
 
+import ne.fnfal113.fnamplifications.utils.ItemTemplates;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +42,7 @@ public class CustomPowerGen extends SlimefunItem implements HologramOwner, Energ
         super(itemGroup, item, recipeType, recipe);
 
         setConfigValues(dayRate, nightRate, output, storage);
-        setLore(this.getItem());
+        setLore(ItemTemplates.of(this));
 
         addItemHandler(
                 toggleHologram(),
