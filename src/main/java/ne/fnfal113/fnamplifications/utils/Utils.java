@@ -29,8 +29,11 @@ public class Utils {
         return ChatColor.translateAlternateColorCodes('&', strings);
     }
 
+    /** Chat prefix: "FNAmp »" in the addon colors, then the message in light gray. */
+    public static final String PREFIX = "&c&lFN&b&lAmp &8» &7";
+
     public static void sendMessage(String message, LivingEntity livingEntity) {
-        livingEntity.sendMessage(colorTranslator("&c&l[FNAmpli" + "&b&lfications] > &6" + message));
+        livingEntity.sendMessage(colorTranslator(PREFIX + message));
     }
 
     public static String[] stringSequence(String... stringSequence) {

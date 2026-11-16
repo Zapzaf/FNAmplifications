@@ -38,7 +38,7 @@ public class StaffTask {
         StaffUses.Result result = StaffUses.spendUseInMainHand(player, item, meta, getStorageKey(), maxUses);
 
         if (result == StaffUses.Result.BROKE) {
-            Utils.sendMessage(name + " &d&lhas reached max uses!", player);
+            Utils.sendMessage(name + " &7has broken &8(&7out of uses&8)", player);
 
             player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1 ,1);
         }
