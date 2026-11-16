@@ -8,8 +8,6 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Objects;
 
@@ -31,18 +29,15 @@ public class StaffTask {
      * @param player the player who used the staff
      */
     public void updateMeta(ItemStack item, ItemMeta meta, Player player) {
-        PersistentDataContainer max_Uses = meta.getPersistentDataContainer();
-        int uses_Left = max_Uses.getOrDefault(getStorageKey(), PersistentDataType.INTEGER, FNAmplifications.getInstance().getConfigManager().getCustomConfig("staffs-settings").getInt(this.getId() + "." + "max-uses"));
-        int decrement = uses_Left - 1;
+        int maxUses = FNAmplifications.getInstance().getConfigManager().getCustomConfig("staffs-settings").getInt(this.getId() + "." + "max-uses");
+        String name = meta.getDisplayName();
 
-        if(decrement > 0) { // update the staff uses left the lore
-            max_Uses.set(getStorageKey(), PersistentDataType.INTEGER, decrement);
-            Utils.setLoreByPdc(item, meta, String.valueOf(decrement), "Uses: ", "&e", "", " left");
-        } else { // destroy the staff when it reached the max uses
-            player.getInventory().setItemInMainHand(null);
-            
-            Utils.sendMessage(meta.getDisplayName() + " &d&lhas reached max uses!", player);
-            
+        // Only one staff of a stack breaks when the uses run out; the rest keep working.
+        StaffUses.Result result = StaffUses.spendUseInMainHand(player, item, meta, getStorageKey(), maxUses);
+
+        if (result == StaffUses.Result.BROKE) {
+            Utils.sendMessage(name + " &d&lhas reached max uses!", player);
+
             player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1 ,1);
         }
 
