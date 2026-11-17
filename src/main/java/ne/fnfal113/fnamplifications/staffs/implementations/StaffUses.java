@@ -13,85 +13,125 @@ import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 /**
  * Counts down the uses of staffs.
  * <p>
- * The uses left are stored on the item, and Minecraft only stacks identical items, so <b>every staff in a
- * stack has the same uses left</b>. That keeps the counts exact however staffs are stacked or split:
- * <ul>
- *     <li>Using a stack splits one staff off. It stays in the hand and spends the use; the rest of the
- *     stack goes back into the inventory unchanged.</li>
- *     <li>When the staff in the hand breaks, the next staff of the same type (the most used one first)
- *     moves into the hand, so using a stack still feels like using one item.</li>
- *     <li>The uses shown in the action bar are counted over all staffs of that type in the inventory.</li>
- * </ul>
+ * A stack of staffs stays in one slot while it is used: only the <b>top staff</b> of the stack is worn down,
+ * and the staffs below it are full. A stack of 16 staffs with 8 uses whose top staff has 5 uses left has
+ * {@code 15 × 8 + 5 = 125} uses left. When the top staff breaks, the stack is one staff smaller and is again
+ * exactly like newly crafted staffs.
+ * <p>
+ * Minecraft stacks items that are identical, so a worn staff must never stack with another staff: two staffs
+ * with 1 use left each would become "a full staff with a worn one on top", which is far more than 2 uses.
+ * Every worn stack therefore gets a random {@link #WORN_KEY tag}, so it only ever stacks with its own halves.
+ * Splitting a worn stack copies the worn top staff into both halves, which only loses uses, and putting the
+ * halves back together restores them.
+ * <p>
+ * Stacks from earlier versions, where every staff had the same uses left, have no tag. They keep their exact
+ * uses: one staff is split off to be used, as before.
  */
 public final class StaffUses {
+
+    /** Marks a stack whose top staff is worn; the value is unique per stack. */
+    public static final NamespacedKey WORN_KEY = new NamespacedKey("fnamplifications", "staff_worn");
 
     private static final String LORE_PREFIX = "Uses: ";
 
     public enum Result {
         /** A use was spent and the staff still has uses left. */
         USED,
-        /** The last use was spent and the staff broke. */
+        /** The last use of the top staff was spent and it broke. */
         BROKE
     }
 
     private StaffUses() {}
 
     /**
-     * Spends one use of a single staff, editing it in place. When the last use is spent, the staff's amount
-     * drops to 0.
+     * Spends one use of the top staff of {@code stack}, editing it in place. When the top staff breaks, the
+     * stack shrinks by one (to 0 for a single staff) and the rest are like newly crafted staffs.
+     * <p>
+     * Only for single staffs and stacks of this version ({@link #isLegacyWornStack} is {@code false}).
      *
-     * @param staff a single staff (amount 1)
-     * @param meta the item meta of {@code staff}, possibly with other pending changes; it is applied to the staff
+     * @param stack the staff stack
+     * @param meta the item meta of {@code stack}, possibly with other pending changes; it is applied to the stack
      * @param key the key the uses left are stored under
      * @param maxUses the uses a new staff has
-     * @return whether the staff still has uses left or broke
+     * @return whether the top staff still has uses left or broke
      */
     @Nonnull
-    public static Result spendUse(@Nonnull ItemStack staff, @Nonnull ItemMeta meta, @Nonnull NamespacedKey key, int maxUses) {
+    public static Result spendUse(@Nonnull ItemStack stack, @Nonnull ItemMeta meta, @Nonnull NamespacedKey key, int maxUses) {
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
         int left = pdc.getOrDefault(key, PersistentDataType.INTEGER, maxUses) - 1;
 
         if (left > 0) {
             pdc.set(key, PersistentDataType.INTEGER, left);
-            Utils.setLoreByPdc(staff, meta, String.valueOf(left), LORE_PREFIX, "&e", "&e", " left");
+            if (!pdc.has(WORN_KEY, PersistentDataType.STRING)) {
+                pdc.set(WORN_KEY, PersistentDataType.STRING, UUID.randomUUID().toString());
+            }
+            Utils.setLoreByPdc(stack, meta, String.valueOf(left), LORE_PREFIX, "&e", "&e", " left");
             return Result.USED;
         }
 
-        staff.setAmount(0);
+        int rest = stack.getAmount() - 1;
+        if (rest > 0) {
+            // The next staff is full: make the stack like newly crafted staffs again, so it stacks with them.
+            pdc.remove(key);
+            pdc.remove(WORN_KEY);
+            Utils.setLoreByPdc(stack, meta, String.valueOf(maxUses), LORE_PREFIX, "&e", "&e", " left");
+        }
+        stack.setAmount(rest);
         return Result.BROKE;
     }
 
     /**
-     * Spends one use of the staff the player holds in their main hand.
-     * <p>
-     * If the hand holds a stack, one staff is split off and used, and the rest of the stack is put back into
-     * the inventory (or dropped at the player's feet if it is full). If the staff breaks, the next staff that
-     * {@code sameStaff} accepts moves into the hand.
+     * Spends one use of the staff (stack) the player holds in their main hand. The stack stays in the hand;
+     * if it is used up, the next staff that {@code sameStaff} accepts moves into the hand.
      *
      * @param player the player using the staff
      * @param item the staff (stack) in the player's main hand
-     * @param meta the item meta of {@code item}, possibly with other pending changes; only the used staff gets them
+     * @param meta the item meta of {@code item}, possibly with other pending changes
      * @param key the key the uses left are stored under
      * @param maxUses the uses a new staff has
      * @param sameStaff whether an item is a staff of the same type
-     * @return whether the used staff still has uses left or broke
+     * @return whether the top staff still has uses left or broke
      */
     @Nonnull
     public static Result spendUseInMainHand(@Nonnull Player player, @Nonnull ItemStack item, @Nonnull ItemMeta meta,
                                             @Nonnull NamespacedKey key, int maxUses, @Nonnull Predicate<ItemStack> sameStaff) {
+        if (isLegacyWornStack(item, key, maxUses)) {
+            return spendUseOfLegacyStack(player, item, meta, key, maxUses, sameStaff);
+        }
+
+        PlayerInventory inventory = player.getInventory();
+        Result result = spendUse(item, meta, key, maxUses);
+        boolean usedUp = item.getAmount() <= 0;
+        inventory.setItemInMainHand(usedUp ? null : item);
+
+        if (usedUp) {
+            refillMainHand(player, key, maxUses, sameStaff);
+        }
+        return result;
+    }
+
+    /**
+     * Whether this is a stack from an earlier version in which every staff is worn by the same amount.
+     * It cannot be worn down from the top without changing its uses, so one staff is split off instead.
+     */
+    static boolean isLegacyWornStack(@Nonnull ItemStack stack, @Nonnull NamespacedKey key, int maxUses) {
+        return stack.getAmount() > 1 && !isTagged(stack) && usesLeft(stack, key, maxUses) < maxUses;
+    }
+
+    @Nonnull
+    private static Result spendUseOfLegacyStack(@Nonnull Player player, @Nonnull ItemStack item, @Nonnull ItemMeta meta,
+                                                @Nonnull NamespacedKey key, int maxUses, @Nonnull Predicate<ItemStack> sameStaff) {
         PlayerInventory inventory = player.getInventory();
 
         // The untouched rest of the stack, without the pending changes in meta.
-        ItemStack rest = null;
-        if (item.getAmount() > 1) {
-            rest = item.clone();
-            rest.setAmount(item.getAmount() - 1);
-        }
+        ItemStack rest = item.clone();
+        rest.setAmount(item.getAmount() - 1);
 
         ItemStack used = item.clone();
         used.setAmount(1);
@@ -99,18 +139,15 @@ public final class StaffUses {
 
         inventory.setItemInMainHand(used.getAmount() > 0 ? used : null);
 
-        if (rest != null) {
-            ItemStack leftover = putInStorage(inventory, rest);
-            if (leftover != null) {
-                Location location = player.getLocation();
-                player.getWorld().dropItemNaturally(location, leftover);
-            }
+        ItemStack leftover = putInStorage(inventory, rest);
+        if (leftover != null) {
+            Location location = player.getLocation();
+            player.getWorld().dropItemNaturally(location, leftover);
         }
 
         if (result == Result.BROKE) {
             refillMainHand(player, key, maxUses, sameStaff);
         }
-
         return result;
     }
 
@@ -149,7 +186,7 @@ public final class StaffUses {
     }
 
     /**
-     * If the main hand is empty, moves the most used staff of the same type from the inventory into it.
+     * If the main hand is empty, moves the most worn staff stack of the same type from the inventory into it.
      */
     static void refillMainHand(@Nonnull Player player, @Nonnull NamespacedKey key, int maxUses, @Nonnull Predicate<ItemStack> sameStaff) {
         PlayerInventory inventory = player.getInventory();
@@ -181,7 +218,7 @@ public final class StaffUses {
         }
     }
 
-    /** The uses left on each staff of this stack (all staffs in a stack have the same). */
+    /** The uses left on the top staff of this stack. */
     public static int usesLeft(@Nonnull ItemStack staff, @Nonnull NamespacedKey key, int maxUses) {
         if (!staff.hasItemMeta()) {
             return maxUses;
@@ -189,12 +226,20 @@ public final class StaffUses {
         return staff.getItemMeta().getPersistentDataContainer().getOrDefault(key, PersistentDataType.INTEGER, maxUses);
     }
 
-    /** The uses left in a stack: its size times the uses left on each staff. */
+    /**
+     * The uses left in a stack: the top staff's uses plus full uses for every staff below it
+     * (for a stack from an earlier version: its size times the uses left on each staff).
+     */
     public static int totalUsesLeft(@Nullable ItemStack stack, @Nonnull NamespacedKey key, int maxUses) {
         if (isEmpty(stack)) {
             return 0;
         }
-        return stack.getAmount() * usesLeft(stack, key, maxUses);
+
+        int top = usesLeft(stack, key, maxUses);
+        if (isTagged(stack)) {
+            return (stack.getAmount() - 1) * maxUses + top;
+        }
+        return stack.getAmount() * top;
     }
 
     /** Uses left, full uses and number of staffs over several stacks. */
@@ -223,6 +268,10 @@ public final class StaffUses {
     public static String usesBar(@Nonnull String staffName, @Nonnull Totals totals) {
         return staffName + "&7: &e" + totals.usesLeft() + "&7/&e" + totals.maxUses() + " &7uses"
                 + (totals.staffs() > 1 ? " &8(" + totals.staffs() + " staffs)" : "");
+    }
+
+    private static boolean isTagged(@Nonnull ItemStack stack) {
+        return stack.hasItemMeta() && stack.getItemMeta().getPersistentDataContainer().has(WORN_KEY, PersistentDataType.STRING);
     }
 
     private static boolean isEmpty(@Nullable ItemStack item) {

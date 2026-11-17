@@ -35,7 +35,7 @@ public class StaffTask {
         int maxUses = getMaxUses();
         String name = meta.getDisplayName();
 
-        // One staff is split off a stack and used; when it breaks, the next one moves into the hand.
+        // The top staff of the stack is worn down, so the stack stays in one slot.
         StaffUses.Result result = StaffUses.spendUseInMainHand(player, item, meta, getStorageKey(), maxUses, this::isSameStaff);
 
         if (result == StaffUses.Result.BROKE) {
