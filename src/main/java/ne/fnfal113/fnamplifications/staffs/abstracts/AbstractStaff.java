@@ -34,6 +34,10 @@ public abstract class AbstractStaff extends SlimefunItem {
         setConfigValues(maxUses, this.getItem().getType().toString());
         setMaterial();
         Utils.setLoreByConfigValue(ItemTemplates.of(this), this.getId(), "max-uses", "left", "&e", " left", "staffs-settings");
+        // Same wording as a used stack ("Uses: 10/10 left"), so a new staff stays similar to the ones players hold
+        ItemStack template = ItemTemplates.of(this);
+        int max = staffTask.getMaxUses();
+        Utils.setLoreByPdc(template, template.getItemMeta(), max + "/" + max, "Uses: ", "&e", "&e", " left");
     }
 
     public void setMaterial(){

@@ -97,6 +97,7 @@ public final class FNAmpItemSetup {
             RegisterStaffs.setup(sfPlugin);
 
             plugin.getServer().getPluginManager().registerEvents(new StaffListener(), plugin);
+            plugin.getServer().getPluginManager().registerEvents(new ne.fnfal113.fnamplifications.staffs.implementations.StaffStacks(plugin), plugin);
         }
 
         if(plugin.getConfig().getBoolean("Enable-Quivers", true)){

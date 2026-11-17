@@ -3,6 +3,7 @@ package ne.fnfal113.fnamplifications.staffs.listener;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import ne.fnfal113.fnamplifications.staffs.abstracts.AbstractStaff;
 import ne.fnfal113.fnamplifications.staffs.handlers.EntityStaffImpl;
+import ne.fnfal113.fnamplifications.staffs.implementations.StaffStacks;
 import ne.fnfal113.fnamplifications.staffs.implementations.StaffUseGuard;
 import ne.fnfal113.fnamplifications.utils.Keys;
 
@@ -49,6 +50,7 @@ public class StaffListener implements Listener {
         }
 
         if (SlimefunItem.getByItem(item) instanceof AbstractStaff staff) {
+            StaffStacks.resolve(event.getPlayer());
             staff.getStaffTask().showUses(event.getPlayer(), item.getItemMeta().getDisplayName());
         }
     }
@@ -146,6 +148,8 @@ public class StaffListener implements Listener {
         // Right-clicking a block fires this event twice once the staff changed; cast only once per click.
         if(!useGuard.tryUse(p.getUniqueId(), Bukkit.getCurrentTick())) return;
 
+        // Share the pools of split stacks first, so the cast spends from the right pool.
+        StaffStacks.resolve(p);
         ((AbstractStaff) stick).onClick(e);
 
     }
@@ -191,6 +195,7 @@ public class StaffListener implements Listener {
         SlimefunItem stick = SlimefunItem.getByItem(p.getInventory().getItemInMainHand());
 
         if(stick instanceof EntityStaffImpl && e.getHand() == EquipmentSlot.HAND) {
+            StaffStacks.resolve(p);
             ((EntityStaffImpl) stick).onEntityClick(e);
         } // check if slimefun item reference points to EntityStaff interface (Locomotion Staff)
 

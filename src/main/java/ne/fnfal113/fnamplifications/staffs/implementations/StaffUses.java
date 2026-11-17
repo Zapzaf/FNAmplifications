@@ -2,7 +2,6 @@ package ne.fnfal113.fnamplifications.staffs.implementations;
 
 import ne.fnfal113.fnamplifications.utils.Utils;
 
-import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -13,182 +12,175 @@ import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
-import java.util.function.Predicate;
+import java.util.function.Function;
 
 /**
- * Counts down the uses of staffs.
+ * Counts the uses of staffs.
  * <p>
- * A stack of staffs stays in one slot while it is used: only the <b>top staff</b> of the stack is worn down,
- * and the staffs below it are full. A stack of 16 staffs with 8 uses whose top staff has 5 uses left has
- * {@code 15 × 8 + 5 = 125} uses left. When the top staff breaks, the stack is one staff smaller and is again
- * exactly like newly crafted staffs.
+ * <b>A stack of staffs shares one pool of uses.</b> 64 new staffs with 10 uses each have 640/640. Using the
+ * stack takes one use from the pool; the staffs only break when the whole pool is used up. Splitting a stack
+ * shares its pool between the parts (305 uses split in half: 153 + 152), and merging stacks adds their pools.
  * <p>
- * Minecraft stacks items that are identical, so a worn staff must never stack with another staff: two staffs
- * with 1 use left each would become "a full staff with a worn one on top", which is far more than 2 uses.
- * Every worn stack therefore gets a random {@link #WORN_KEY tag}, so it only ever stacks with its own halves.
- * Splitting a worn stack copies the worn top staff into both halves, which only loses uses, and putting the
- * halves back together restores them.
+ * Minecraft splits stacks on its own (right-click, drag, drop, hoppers) by <i>copying</i> the item, so both
+ * parts first carry the pool of the whole stack. Each written pool therefore records the {@link #AMOUNT_KEY
+ * number of staffs} it was written for and a {@link #ID_KEY unique id}. Parts with the same id came from the
+ * same stack: {@link #resolve} shares the pool between them exactly when it sees all of them, and a part on its
+ * own only ever counts its proportional share (rounded down). Copies can never add uses.
  * <p>
- * Stacks from earlier versions, where every staff had the same uses left, have no tag. They keep their exact
- * uses: one staff is split off to be used, as before.
+ * New staffs have no pool data, so they still stack with newly crafted staffs.
  */
 public final class StaffUses {
 
-    /** Marks a stack whose top staff is worn; the value is unique per stack. */
-    public static final NamespacedKey WORN_KEY = new NamespacedKey("fnamplifications", "staff_worn");
+    /** The uses left in the whole stack. */
+    public static final NamespacedKey POOL_KEY = new NamespacedKey("fnamplifications", "staff_pool");
+    /** The number of staffs the pool was written for. */
+    public static final NamespacedKey AMOUNT_KEY = new NamespacedKey("fnamplifications", "staff_pool_amount");
+    /** Unique per written pool, so the parts of a split stack can be found. */
+    public static final NamespacedKey ID_KEY = new NamespacedKey("fnamplifications", "staff_pool_id");
+    /** Marked worn stacks in v4.2.4.2, where the uses key held the uses of the top staff only. */
+    static final NamespacedKey LEGACY_WORN_KEY = new NamespacedKey("fnamplifications", "staff_worn");
 
     private static final String LORE_PREFIX = "Uses: ";
 
+    /** A type of staff: its Slimefun id, the key older versions stored uses under, and the uses of a new staff. */
+    public record StaffType(@Nonnull String id, @Nonnull NamespacedKey legacyKey, int maxUses) {}
+
+    /** A place an item can be read from and written to: an inventory slot, the cursor, a dropped item. */
+    public interface Slot {
+        @Nullable
+        ItemStack get();
+
+        void set(@Nullable ItemStack item);
+    }
+
     public enum Result {
-        /** A use was spent and the staff still has uses left. */
+        /** A use was spent and the stack still has uses left. */
         USED,
-        /** The last use of the top staff was spent and it broke. */
+        /** The last use was spent and the stack broke. */
         BROKE
     }
 
     private StaffUses() {}
 
-    /**
-     * Spends one use of the top staff of {@code stack}, editing it in place. When the top staff breaks, the
-     * stack shrinks by one (to 0 for a single staff) and the rest are like newly crafted staffs.
-     * <p>
-     * Only for single staffs and stacks of this version ({@link #isLegacyWornStack} is {@code false}).
-     *
-     * @param stack the staff stack
-     * @param meta the item meta of {@code stack}, possibly with other pending changes; it is applied to the stack
-     * @param key the key the uses left are stored under
-     * @param maxUses the uses a new staff has
-     * @return whether the top staff still has uses left or broke
-     */
-    @Nonnull
-    public static Result spendUse(@Nonnull ItemStack stack, @Nonnull ItemMeta meta, @Nonnull NamespacedKey key, int maxUses) {
-        PersistentDataContainer pdc = meta.getPersistentDataContainer();
-        int left = pdc.getOrDefault(key, PersistentDataType.INTEGER, maxUses) - 1;
+    // ---- reading and writing ----
 
-        if (left > 0) {
-            pdc.set(key, PersistentDataType.INTEGER, left);
-            if (!pdc.has(WORN_KEY, PersistentDataType.STRING)) {
-                pdc.set(WORN_KEY, PersistentDataType.STRING, UUID.randomUUID().toString());
-            }
-            Utils.setLoreByPdc(stack, meta, String.valueOf(left), LORE_PREFIX, "&e", "&e", " left");
-            return Result.USED;
+    /** The uses left in this stack. */
+    public static int usesLeft(@Nullable ItemStack stack, @Nonnull StaffType type) {
+        if (isEmpty(stack)) {
+            return 0;
         }
 
-        int rest = stack.getAmount() - 1;
-        if (rest > 0) {
-            // The next staff is full: make the stack like newly crafted staffs again, so it stacks with them.
-            pdc.remove(key);
-            pdc.remove(WORN_KEY);
-            Utils.setLoreByPdc(stack, meta, String.valueOf(maxUses), LORE_PREFIX, "&e", "&e", " left");
+        int amount = stack.getAmount();
+        long full = (long) amount * type.maxUses();
+        if (!stack.hasItemMeta()) {
+            return (int) full;
         }
-        stack.setAmount(rest);
-        return Result.BROKE;
+
+        PersistentDataContainer pdc = stack.getItemMeta().getPersistentDataContainer();
+        long left;
+
+        Integer pool = pdc.get(POOL_KEY, PersistentDataType.INTEGER);
+        Integer legacy = pdc.get(type.legacyKey(), PersistentDataType.INTEGER);
+        if (pool != null) {
+            int writtenFor = pdc.getOrDefault(AMOUNT_KEY, PersistentDataType.INTEGER, amount);
+            // A part of a split stack only counts its share of the pool
+            left = writtenFor <= 0 ? 0 : (long) pool * amount / writtenFor;
+        } else if (legacy != null && pdc.has(LEGACY_WORN_KEY, PersistentDataType.STRING)) {
+            left = (long) (amount - 1) * type.maxUses() + legacy;
+        } else if (legacy != null) {
+            left = (long) amount * legacy;
+        } else {
+            left = full;
+        }
+
+        return (int) Math.max(0, Math.min(full, left));
+    }
+
+    /** The uses this stack would have if all its staffs were new. */
+    public static int maxUses(@Nullable ItemStack stack, @Nonnull StaffType type) {
+        return isEmpty(stack) ? 0 : stack.getAmount() * type.maxUses();
+    }
+
+    /** Sets the uses left in the whole stack and updates its lore. With no uses left, the stack's amount becomes 0. */
+    public static void write(@Nonnull ItemStack stack, @Nonnull StaffType type, int uses) {
+        write(stack, stack.getItemMeta(), type, uses);
     }
 
     /**
-     * Spends one use of the staff (stack) the player holds in their main hand. The stack stays in the hand;
-     * if it is used up, the next staff that {@code sameStaff} accepts moves into the hand.
+     * Sets the uses left in the whole stack and updates its lore, applying {@code meta} (which may hold other
+     * pending changes) to the stack. With no uses left, the stack's amount becomes 0.
+     */
+    public static void write(@Nonnull ItemStack stack, @Nonnull ItemMeta meta, @Nonnull StaffType type, int uses) {
+        int full = maxUses(stack, type);
+        if (uses <= 0 || full <= 0) {
+            stack.setAmount(0);
+            return;
+        }
+        uses = Math.min(uses, full);
+
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        pdc.remove(type.legacyKey());
+        pdc.remove(LEGACY_WORN_KEY);
+
+        if (uses == full) {
+            // Like newly crafted staffs again
+            pdc.remove(POOL_KEY);
+            pdc.remove(AMOUNT_KEY);
+            pdc.remove(ID_KEY);
+        } else {
+            pdc.set(POOL_KEY, PersistentDataType.INTEGER, uses);
+            pdc.set(AMOUNT_KEY, PersistentDataType.INTEGER, stack.getAmount());
+            pdc.set(ID_KEY, PersistentDataType.STRING, UUID.randomUUID().toString());
+        }
+
+        Utils.setLoreByPdc(stack, meta, uses + "/" + full, LORE_PREFIX, "&e", "&e", " left");
+    }
+
+    // ---- using ----
+
+    /**
+     * Spends one use from the stack's pool, editing it in place. When the pool is used up, the stack breaks
+     * (its amount becomes 0).
      *
-     * @param player the player using the staff
-     * @param item the staff (stack) in the player's main hand
-     * @param meta the item meta of {@code item}, possibly with other pending changes
-     * @param key the key the uses left are stored under
-     * @param maxUses the uses a new staff has
-     * @param sameStaff whether an item is a staff of the same type
-     * @return whether the top staff still has uses left or broke
+     * @param meta the item meta of {@code stack}, possibly with other pending changes; it is applied to the stack
+     */
+    @Nonnull
+    public static Result spendUse(@Nonnull ItemStack stack, @Nonnull ItemMeta meta, @Nonnull StaffType type) {
+        int left = usesLeft(stack, type) - 1;
+        if (left <= 0) {
+            stack.setAmount(0);
+            return Result.BROKE;
+        }
+
+        write(stack, meta, type, left);
+        return Result.USED;
+    }
+
+    /**
+     * Spends one use of the staff stack in the player's main hand. If the stack breaks, the staff stack of the
+     * same type with the fewest uses left moves into the hand.
      */
     @Nonnull
     public static Result spendUseInMainHand(@Nonnull Player player, @Nonnull ItemStack item, @Nonnull ItemMeta meta,
-                                            @Nonnull NamespacedKey key, int maxUses, @Nonnull Predicate<ItemStack> sameStaff) {
-        if (isLegacyWornStack(item, key, maxUses)) {
-            return spendUseOfLegacyStack(player, item, meta, key, maxUses, sameStaff);
-        }
-
+                                            @Nonnull StaffType type, @Nonnull Function<ItemStack, StaffType> types) {
         PlayerInventory inventory = player.getInventory();
-        Result result = spendUse(item, meta, key, maxUses);
-        boolean usedUp = item.getAmount() <= 0;
-        inventory.setItemInMainHand(usedUp ? null : item);
+        Result result = spendUse(item, meta, type);
+        boolean broke = item.getAmount() <= 0;
+        inventory.setItemInMainHand(broke ? null : item);
 
-        if (usedUp) {
-            refillMainHand(player, key, maxUses, sameStaff);
+        if (broke) {
+            refillMainHand(player, type, types);
         }
         return result;
     }
 
-    /**
-     * Whether this is a stack from an earlier version in which every staff is worn by the same amount.
-     * It cannot be worn down from the top without changing its uses, so one staff is split off instead.
-     */
-    static boolean isLegacyWornStack(@Nonnull ItemStack stack, @Nonnull NamespacedKey key, int maxUses) {
-        return stack.getAmount() > 1 && !isTagged(stack) && usesLeft(stack, key, maxUses) < maxUses;
-    }
-
-    @Nonnull
-    private static Result spendUseOfLegacyStack(@Nonnull Player player, @Nonnull ItemStack item, @Nonnull ItemMeta meta,
-                                                @Nonnull NamespacedKey key, int maxUses, @Nonnull Predicate<ItemStack> sameStaff) {
-        PlayerInventory inventory = player.getInventory();
-
-        // The untouched rest of the stack, without the pending changes in meta.
-        ItemStack rest = item.clone();
-        rest.setAmount(item.getAmount() - 1);
-
-        ItemStack used = item.clone();
-        used.setAmount(1);
-        Result result = spendUse(used, meta, key, maxUses);
-
-        inventory.setItemInMainHand(used.getAmount() > 0 ? used : null);
-
-        ItemStack leftover = putInStorage(inventory, rest);
-        if (leftover != null) {
-            Location location = player.getLocation();
-            player.getWorld().dropItemNaturally(location, leftover);
-        }
-
-        if (result == Result.BROKE) {
-            refillMainHand(player, key, maxUses, sameStaff);
-        }
-        return result;
-    }
-
-    /**
-     * Puts {@code item} into the main inventory (hotbar and the 27 slots above it, never armor or offhand):
-     * first onto matching stacks, then into empty slots.
-     *
-     * @return what did not fit, or {@code null}
-     */
-    @Nullable
-    static ItemStack putInStorage(@Nonnull PlayerInventory inventory, @Nonnull ItemStack item) {
-        ItemStack remaining = item.clone();
-        ItemStack[] storage = inventory.getStorageContents();
-        int maxStack = remaining.getMaxStackSize();
-
-        for (int slot = 0; slot < storage.length && remaining.getAmount() > 0; slot++) {
-            ItemStack existing = storage[slot];
-            if (!isEmpty(existing) && existing.isSimilar(remaining) && existing.getAmount() < maxStack) {
-                int moved = Math.min(maxStack - existing.getAmount(), remaining.getAmount());
-                existing.setAmount(existing.getAmount() + moved);
-                inventory.setItem(slot, existing);
-                remaining.setAmount(remaining.getAmount() - moved);
-            }
-        }
-
-        for (int slot = 0; slot < storage.length && remaining.getAmount() > 0; slot++) {
-            if (isEmpty(inventory.getItem(slot))) {
-                ItemStack placed = remaining.clone();
-                placed.setAmount(Math.min(maxStack, remaining.getAmount()));
-                inventory.setItem(slot, placed);
-                remaining.setAmount(remaining.getAmount() - placed.getAmount());
-            }
-        }
-
-        return remaining.getAmount() > 0 ? remaining : null;
-    }
-
-    /**
-     * If the main hand is empty, moves the most worn staff stack of the same type from the inventory into it.
-     */
-    static void refillMainHand(@Nonnull Player player, @Nonnull NamespacedKey key, int maxUses, @Nonnull Predicate<ItemStack> sameStaff) {
+    /** If the main hand is empty, moves the staff stack of the same type with the fewest uses left into it. */
+    static void refillMainHand(@Nonnull Player player, @Nonnull StaffType type, @Nonnull Function<ItemStack, StaffType> types) {
         PlayerInventory inventory = player.getInventory();
         if (!isEmpty(inventory.getItemInMainHand())) {
             return;
@@ -201,11 +193,11 @@ public final class StaffUses {
 
         for (int slot = 0; slot < storage.length; slot++) {
             ItemStack candidate = storage[slot];
-            if (slot == heldSlot || isEmpty(candidate) || !sameStaff.test(candidate)) {
+            if (slot == heldSlot || !isType(candidate, type, types)) {
                 continue;
             }
 
-            int left = usesLeft(candidate, key, maxUses);
+            int left = usesLeft(candidate, type);
             if (left < bestLeft) {
                 best = slot;
                 bestLeft = left;
@@ -218,46 +210,154 @@ public final class StaffUses {
         }
     }
 
-    /** The uses left on the top staff of this stack. */
-    public static int usesLeft(@Nonnull ItemStack staff, @Nonnull NamespacedKey key, int maxUses) {
-        if (!staff.hasItemMeta()) {
-            return maxUses;
+    // ---- splitting and merging ----
+
+    /**
+     * Shares the pools of split stacks between their parts and brings staffs from older versions to the pool
+     * format. Parts with the same id came from one stack: if all of them are in {@code slots}, the pool is
+     * shared out exactly (leftover uses go to the first parts); otherwise each part gets its share rounded down.
+     * A part that ends up with no uses breaks.
+     *
+     * @param slots the places to look at, for example a player's inventory and cursor; earlier slots get leftover uses first
+     * @param types the staff type of an item, or {@code null} if it is not a staff
+     * @return the number of staffs that broke because their part of the pool was empty
+     */
+    public static int resolve(@Nonnull List<? extends Slot> slots, @Nonnull Function<ItemStack, StaffType> types) {
+        Map<String, List<Slot>> parts = new LinkedHashMap<>();
+
+        for (Slot slot : slots) {
+            ItemStack item = slot.get();
+            StaffType type = isEmpty(item) ? null : types.apply(item);
+            if (type == null) {
+                continue;
+            }
+
+            PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
+            String id = pdc.get(ID_KEY, PersistentDataType.STRING);
+            if (id != null && pdc.has(POOL_KEY, PersistentDataType.INTEGER)) {
+                parts.computeIfAbsent(id, key -> new ArrayList<>()).add(slot);
+            } else if (pdc.has(type.legacyKey(), PersistentDataType.INTEGER) || !showsUses(item, type)) {
+                // A staff from an older version, or new staffs whose lore doesn't show this stack's uses yet
+                write(item, type, usesLeft(item, type));
+                slot.set(item);
+            }
         }
-        return staff.getItemMeta().getPersistentDataContainer().getOrDefault(key, PersistentDataType.INTEGER, maxUses);
+
+        int broken = 0;
+        for (List<Slot> group : parts.values()) {
+            broken += share(group, types);
+        }
+        return broken;
+    }
+
+    private static int share(@Nonnull List<Slot> group, @Nonnull Function<ItemStack, StaffType> types) {
+        ItemStack first = group.get(0).get();
+        StaffType type = types.apply(first);
+        PersistentDataContainer pdc = first.getItemMeta().getPersistentDataContainer();
+        int pool = pdc.getOrDefault(POOL_KEY, PersistentDataType.INTEGER, 0);
+        int writtenFor = pdc.getOrDefault(AMOUNT_KEY, PersistentDataType.INTEGER, first.getAmount());
+
+        int seen = 0;
+        for (Slot slot : group) {
+            seen += slot.get().getAmount();
+        }
+        if (group.size() == 1 && seen == writtenFor) {
+            return 0; // a whole stack, nothing to share
+        }
+
+        long divisor = Math.max(writtenFor, seen);
+        int[] shares = new int[group.size()];
+        int given = 0;
+        for (int i = 0; i < shares.length; i++) {
+            shares[i] = (int) ((long) pool * group.get(i).get().getAmount() / divisor);
+            given += shares[i];
+        }
+
+        if (seen >= writtenFor) {
+            // All parts are here: hand out the leftover uses, first to parts that would otherwise break
+            int leftover = pool - given;
+            for (int pass = 0; pass < 2 && leftover > 0; pass++) {
+                for (int i = 0; i < shares.length && leftover > 0; i++) {
+                    ItemStack part = group.get(i).get();
+                    boolean wanted = pass == 1 || shares[i] == 0;
+                    if (wanted && shares[i] < part.getAmount() * type.maxUses()) {
+                        shares[i]++;
+                        leftover--;
+                    }
+                }
+            }
+        }
+
+        int broken = 0;
+        for (int i = 0; i < shares.length; i++) {
+            Slot slot = group.get(i);
+            ItemStack part = slot.get();
+            int amount = part.getAmount();
+            write(part, type, shares[i]);
+            if (part.getAmount() <= 0) {
+                broken += amount;
+                slot.set(null);
+            } else {
+                slot.set(part);
+            }
+        }
+        return broken;
     }
 
     /**
-     * The uses left in a stack: the top staff's uses plus full uses for every staff below it
-     * (for a stack from an earlier version: its size times the uses left on each staff).
+     * Merges the staffs on the cursor into a stack of the same type: their pools are added together. Moves as
+     * many staffs as fit (or one, if {@code onlyOne}), together with their share of the cursor's pool.
+     *
+     * @return the new stack and the new cursor (or {@code null} if no staffs are left on it),
+     *         or {@code null} if nothing could be moved
      */
-    public static int totalUsesLeft(@Nullable ItemStack stack, @Nonnull NamespacedKey key, int maxUses) {
-        if (isEmpty(stack)) {
-            return 0;
+    @Nullable
+    public static ItemStack[] merge(@Nonnull ItemStack cursor, @Nonnull ItemStack stack, @Nonnull StaffType type, boolean onlyOne) {
+        int onCursor = cursor.getAmount();
+        int moved = onlyOne ? 1 : Math.min(onCursor, stack.getMaxStackSize() - stack.getAmount());
+        if (moved <= 0) {
+            return null;
         }
 
-        int top = usesLeft(stack, key, maxUses);
-        if (isTagged(stack)) {
-            return (stack.getAmount() - 1) * maxUses + top;
+        int cursorUses = usesLeft(cursor, type);
+        int stackUses = usesLeft(stack, type);
+        int movedUses = moved == onCursor ? cursorUses : (int) ((long) cursorUses * moved / onCursor);
+
+        ItemStack merged = stack.clone();
+        merged.setAmount(stack.getAmount() + moved);
+        write(merged, type, stackUses + movedUses);
+
+        ItemStack rest = null;
+        if (moved < onCursor) {
+            rest = cursor.clone();
+            rest.setAmount(onCursor - moved);
+            write(rest, type, cursorUses - movedUses);
+            if (rest.getAmount() <= 0) {
+                rest = null;
+            }
         }
-        return stack.getAmount() * top;
+
+        return new ItemStack[] {merged, rest};
     }
+
+    // ---- totals ----
 
     /** Uses left, full uses and number of staffs over several stacks. */
     public record Totals(int usesLeft, int maxUses, int staffs) {}
 
-    /** Adds up the staffs that {@code sameStaff} accepts among {@code items}. */
+    /** Adds up the staffs of the given type among {@code items}. */
     @Nonnull
-    public static Totals count(@Nonnull ItemStack[] items, @Nonnull Predicate<ItemStack> sameStaff, @Nonnull NamespacedKey key, int maxUses) {
+    public static Totals count(@Nonnull ItemStack[] items, @Nonnull StaffType type, @Nonnull Function<ItemStack, StaffType> types) {
         int left = 0;
         int staffs = 0;
         for (ItemStack it : items) {
-            if (isEmpty(it) || !sameStaff.test(it)) {
+            if (!isType(it, type, types)) {
                 continue;
             }
-            left += totalUsesLeft(it, key, maxUses);
+            left += usesLeft(it, type);
             staffs += it.getAmount();
         }
-        return new Totals(left, staffs * maxUses, staffs);
+        return new Totals(left, staffs * type.maxUses(), staffs);
     }
 
     /**
@@ -270,11 +370,22 @@ public final class StaffUses {
                 + (totals.staffs() > 1 ? " &8(" + totals.staffs() + " staffs)" : "");
     }
 
-    private static boolean isTagged(@Nonnull ItemStack stack) {
-        return stack.hasItemMeta() && stack.getItemMeta().getPersistentDataContainer().has(WORN_KEY, PersistentDataType.STRING);
+    /** Whether the lore of this stack shows its current uses, for example {@code "Uses: 640/640 left"}. */
+    static boolean showsUses(@Nonnull ItemStack stack, @Nonnull StaffType type) {
+        List<String> lore = stack.getItemMeta().getLore();
+        String expected = Utils.colorTranslator("&e" + LORE_PREFIX + "&e" + usesLeft(stack, type) + "/" + maxUses(stack, type) + " left");
+        return lore != null && lore.contains(expected);
     }
 
-    private static boolean isEmpty(@Nullable ItemStack item) {
+    private static boolean isType(@Nullable ItemStack item, @Nonnull StaffType type, @Nonnull Function<ItemStack, StaffType> types) {
+        if (isEmpty(item)) {
+            return false;
+        }
+        StaffType other = types.apply(item);
+        return other != null && other.id().equals(type.id());
+    }
+
+    static boolean isEmpty(@Nullable ItemStack item) {
         return item == null || item.getType().isAir() || item.getAmount() <= 0;
     }
 }

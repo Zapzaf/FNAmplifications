@@ -32,11 +32,10 @@ public class StaffTask {
      * @param player the player who used the staff
      */
     public void updateMeta(ItemStack item, ItemMeta meta, Player player) {
-        int maxUses = getMaxUses();
         String name = meta.getDisplayName();
 
-        // The top staff of the stack is worn down, so the stack stays in one slot.
-        StaffUses.Result result = StaffUses.spendUseInMainHand(player, item, meta, getStorageKey(), maxUses, this::isSameStaff);
+        // The stack shares one pool of uses; it only breaks when the pool is used up.
+        StaffUses.Result result = StaffUses.spendUseInMainHand(player, item, meta, getType(), StaffStacks::typeOf);
 
         if (result == StaffUses.Result.BROKE) {
             Utils.sendMessage(name + " &7has broken &8(&7out of uses&8)", player);
@@ -54,6 +53,11 @@ public class StaffTask {
         return FNAmplifications.getInstance().getConfigManager().getCustomConfig("staffs-settings").getInt(this.getId() + "." + "max-uses");
     }
 
+    /** This staff type, for counting uses. */
+    public StaffUses.StaffType getType() {
+        return new StaffUses.StaffType(getId(), getStorageKey(), getMaxUses());
+    }
+
     /** Whether {@code item} is a staff of this type. */
     public boolean isSameStaff(ItemStack item) {
         SlimefunItem sfItem = SlimefunItem.getByItem(item);
@@ -62,7 +66,7 @@ public class StaffTask {
 
     /** Shows the uses left in all staffs of this type in the inventory, in the action bar of the player. */
     public void showUses(Player player, String staffName) {
-        StaffUses.Totals totals = StaffUses.count(player.getInventory().getStorageContents(), this::isSameStaff, getStorageKey(), getMaxUses());
+        StaffUses.Totals totals = StaffUses.count(player.getInventory().getStorageContents(), getType(), StaffStacks::typeOf);
         if (totals.staffs() == 0) {
             return;
         }

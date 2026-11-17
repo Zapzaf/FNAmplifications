@@ -14,7 +14,6 @@ import org.mockbukkit.mockbukkit.entity.PlayerMock;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -85,6 +84,7 @@ class TestStaffUseGuard {
     // ---- one click on a block = two interact events; only one use may be spent ----
 
     private static final NamespacedKey KEY = new NamespacedKey("fnamplifications", "test_staff_uses");
+    private static final StaffUses.StaffType TYPE = new StaffUses.StaffType("FN_STAFF_FORCE", KEY, 10);
     private PlayerMock player;
 
     @BeforeEach
@@ -112,12 +112,11 @@ class TestStaffUseGuard {
             return;
         }
         ItemStack hand = player.getInventory().getItemInMainHand();
-        Predicate<ItemStack> same = it -> it != null && it.getType() == Material.BLAZE_ROD;
-        StaffUses.spendUseInMainHand(player, hand, hand.getItemMeta(), KEY, 10, same);
+        StaffUses.spendUseInMainHand(player, hand, hand.getItemMeta(), TYPE, it -> it != null && it.getType() == Material.BLAZE_ROD ? TYPE : null);
     }
 
     private int usesLeft() {
-        return StaffUses.count(player.getInventory().getStorageContents(), it -> it != null && it.getType() == Material.BLAZE_ROD, KEY, 10).usesLeft();
+        return StaffUses.count(player.getInventory().getStorageContents(), TYPE, it -> it != null && it.getType() == Material.BLAZE_ROD ? TYPE : null).usesLeft();
     }
 
     @Test
